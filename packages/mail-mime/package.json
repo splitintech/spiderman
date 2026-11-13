@@ -1,0 +1,31 @@
+{
+  "name": "@splitin/spiderman-mail-mime",
+  "version": "0.1.0-alpha.2",
+  "type": "module",
+  "license": "MIT",
+  "description": "Reusable MIME composition without a provider runtime",
+  "engines": {
+    "node": ">=22.13.0 <25"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/splitintech/spiderman.git",
+    "directory": "packages/mail-mime"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -25,7 +25,7 @@ export class WhatsAppBusinessProvider implements Provider {
     transport: "whatsapp-business",
     qualification: "automated_only" as const,
     operations: [
-      send,
+      { ...send, input: z.object({ recipient: phone, text }).strict() },
       {
         name: "message.template",
         risk: "write" as const,
@@ -223,11 +223,14 @@ export class WhatsAppPersonalProvider implements Provider {
     a: Record<string, unknown>,
     ctx: ProviderContext,
   ) {
+    if (_name !== "message.send")
+      throw new ConnectorError("operation_unavailable");
     const input = sendSchema.parse(a),
       session = this.sessionFor(required(ctx.credentials, "sessionId"));
     if (!session.ready() || session.accountId !== ctx.connection.accountId)
       throw new ConnectorError("paired_device_unavailable");
     try {
+      await ctx.beforeDispatch?.();
       const data = await session.send(input.recipient, input.text);
       if (!data.id) throw new ConnectorError("send_receipt_missing", true);
       return {

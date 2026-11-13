@@ -1,0 +1,262 @@
+/** HTTP operation inventory shared by OpenAPI and generated service clients. */
+export interface ApiOperation {
+  name: string;
+  method: "GET" | "POST" | "PATCH" | "DELETE";
+  path: string;
+  request?: string;
+  response?: string;
+  status?: number;
+  bodyArgument?: string;
+  parameters?: string[];
+  binary?: boolean;
+}
+export const apiOperations: ApiOperation[] = [
+  {
+    name: "subscriptions",
+    method: "GET",
+    path: "/v1/subscriptions",
+    response: "Subscription[]",
+  },
+  {
+    name: "create_subscription",
+    method: "POST",
+    path: "/v1/subscriptions",
+    request: "SubscriptionInput",
+    response: "Subscription",
+    status: 201,
+  },
+  {
+    name: "pause_subscription",
+    method: "POST",
+    path: "/v1/subscriptions/{subscription_id}/pause",
+    response: "Subscription",
+  },
+  {
+    name: "resume_subscription",
+    method: "POST",
+    path: "/v1/subscriptions/{subscription_id}/resume",
+    response: "Subscription",
+  },
+  { name: "health", method: "GET", path: "/v1/health" },
+  {
+    name: "connections",
+    method: "GET",
+    path: "/v1/connections",
+    response: "Connection[]",
+  },
+  {
+    name: "connect",
+    method: "POST",
+    path: "/v1/connections",
+    request: "ConnectionInput",
+    response: "Connection",
+    status: 201,
+  },
+  {
+    name: "reconnect",
+    method: "POST",
+    path: "/v1/connections/{connection_id}/reconnect",
+    request: "ReconnectInput",
+    response: "Connection",
+  },
+  {
+    name: "limits",
+    method: "PATCH",
+    path: "/v1/connections/{connection_id}/limits",
+    request: "ConnectionLimits",
+    response: "Connection",
+  },
+  {
+    name: "resources",
+    method: "PATCH",
+    path: "/v1/connections/{connection_id}/resources",
+    request: "ResourcesInput",
+    response: "Connection",
+  },
+  {
+    name: "disconnect",
+    method: "DELETE",
+    path: "/v1/connections/{connection_id}",
+  },
+  {
+    name: "capabilities",
+    method: "GET",
+    path: "/v1/connections/{connection_id}/capabilities",
+    response: "Capabilities",
+  },
+  {
+    name: "actions",
+    method: "GET",
+    path: "/v1/actions",
+    response: "ActionReceipt[]",
+  },
+  {
+    name: "submit",
+    method: "POST",
+    path: "/v1/actions",
+    request: "ActionRequest",
+    response: "ActionReceipt",
+    status: 202,
+    bodyArgument: "action",
+  },
+  {
+    name: "action",
+    method: "GET",
+    path: "/v1/actions/{action_id}",
+    response: "ActionReceipt",
+  },
+  { name: "preview", method: "GET", path: "/v1/actions/{action_id}/preview" },
+  { name: "result", method: "GET", path: "/v1/actions/{action_id}/result" },
+  {
+    name: "approve",
+    method: "POST",
+    path: "/v1/actions/{action_id}/approve",
+    request: "ApprovalInput",
+    response: "ActionReceipt",
+  },
+  {
+    name: "cancel",
+    method: "POST",
+    path: "/v1/actions/{action_id}/cancel",
+    response: "ActionReceipt",
+  },
+  {
+    name: "retry",
+    method: "POST",
+    path: "/v1/actions/{action_id}/retry",
+    response: "ActionReceipt",
+  },
+  {
+    name: "dead_letter",
+    method: "GET",
+    path: "/v1/actions/dead-letter",
+    response: "ActionReceipt[]",
+  },
+  {
+    name: "reconcile",
+    method: "POST",
+    path: "/v1/actions/{action_id}/reconcile",
+    request: "ReconcileInput",
+    status: 202,
+    response: "Reconciliation",
+  },
+  {
+    name: "reconciliations",
+    method: "GET",
+    path: "/v1/reconciliations",
+    response: "Reconciliation[]",
+  },
+  {
+    name: "policies",
+    method: "GET",
+    path: "/v1/policies",
+    response: "Policy[]",
+  },
+  {
+    name: "create_policy",
+    method: "POST",
+    path: "/v1/policies",
+    request: "PolicyInput",
+    status: 201,
+    response: "Policy",
+  },
+  { name: "delete_policy", method: "DELETE", path: "/v1/policies/{policy_id}" },
+  {
+    name: "events",
+    method: "GET",
+    path: "/v1/events",
+    response: "EventEnvelope[]",
+  },
+  {
+    name: "event_content",
+    method: "GET",
+    path: "/v1/events/{event_id}/content",
+  },
+  { name: "export", method: "GET", path: "/v1/export" },
+  { name: "delete_data", method: "DELETE", path: "/v1/data" },
+  {
+    name: "oauth",
+    method: "POST",
+    path: "/v1/oauth/{provider}/start",
+    request: "OAuthInput",
+  },
+  { name: "auth_providers", method: "GET", path: "/v1/auth/providers" },
+  { name: "doctor", method: "GET", path: "/v1/doctor" },
+  {
+    name: "syncs",
+    method: "GET",
+    path: "/v1/sync",
+    response: "SyncSchedule[]",
+  },
+  {
+    name: "create_sync",
+    method: "POST",
+    path: "/v1/sync",
+    request: "SyncInput",
+    status: 201,
+    response: "SyncSchedule",
+  },
+  {
+    name: "pause_sync",
+    method: "POST",
+    path: "/v1/sync/{sync_id}/pause",
+    response: "SyncSchedule",
+  },
+  {
+    name: "resume_sync",
+    method: "POST",
+    path: "/v1/sync/{sync_id}/resume",
+    response: "SyncSchedule",
+  },
+  {
+    name: "voices",
+    method: "GET",
+    path: "/v1/voice",
+    response: "VoiceWorkflow[]",
+  },
+  {
+    name: "enroll_voice",
+    method: "POST",
+    path: "/v1/voice",
+    request: "VoiceInput",
+    status: 201,
+    response: "VoiceWorkflow",
+  },
+  {
+    name: "voice",
+    method: "GET",
+    path: "/v1/voice/{workflow_id}",
+    response: "VoiceWorkflow",
+  },
+  {
+    name: "cancel_voice",
+    method: "POST",
+    path: "/v1/voice/{workflow_id}/cancel",
+    response: "VoiceWorkflow",
+  },
+  {
+    name: "artifact",
+    method: "GET",
+    path: "/v1/artifacts/{action_id}",
+    binary: true,
+  },
+  { name: "webhooks", method: "GET", path: "/v1/webhooks" },
+  {
+    name: "create_webhook",
+    method: "POST",
+    path: "/v1/webhooks",
+    request: "WebhookInput",
+    status: 201,
+  },
+  {
+    name: "bind_webhook",
+    method: "PATCH",
+    path: "/v1/webhooks/{webhook_id}",
+    request: "WebhookBinding",
+  },
+  {
+    name: "delete_webhook",
+    method: "DELETE",
+    path: "/v1/webhooks/{webhook_id}",
+  },
+];

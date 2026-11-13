@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-cli",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman cli module: personal account connectors and agent bridge",
@@ -29,14 +29,14 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.8",
-    "@splitin/spiderman-core": "0.1.0-alpha.1",
-    "@splitin/spiderman-providers": "0.1.0-alpha.1",
-    "@splitin/spiderman-sdk": "0.1.0-alpha.1",
-    "@splitin/spiderman-server": "0.1.0-alpha.1",
-    "@splitin/spiderman-store-sqlite": "0.1.0-alpha.1",
-    "@splitin/spiderman-vault": "0.1.0-alpha.1",
-    "@splitin/spiderman-mcp": "0.1.0-alpha.1",
-    "@splitin/spiderman-store-postgres": "0.1.0-alpha.1"
+    "@splitin/spiderman-core": "0.1.0-alpha.2",
+    "@splitin/spiderman-providers": "0.1.0-alpha.2",
+    "@splitin/spiderman-sdk": "0.1.0-alpha.2",
+    "@splitin/spiderman-server": "0.1.0-alpha.2",
+    "@splitin/spiderman-store-sqlite": "0.1.0-alpha.2",
+    "@splitin/spiderman-vault": "0.1.0-alpha.2",
+    "@splitin/spiderman-mcp": "0.1.0-alpha.2",
+    "@splitin/spiderman-store-postgres": "0.1.0-alpha.2"
   },
   "bin": {
     "spiderman": "./dist/index.js"

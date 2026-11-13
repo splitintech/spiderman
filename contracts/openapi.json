@@ -2,12 +2,12 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Spiderman API",
-    "version": "0.1.0-alpha.1"
+    "version": "0.1.0-alpha.2"
   },
   "paths": {
-    "/v1/connections": {
+    "/v1/subscriptions": {
       "get": {
-        "operationId": "get__v1_connections",
+        "operationId": "subscriptions",
         "security": [
           {
             "bearer": []
@@ -15,24 +15,361 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Subscription"
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       },
       "post": {
-        "operationId": "post__v1_connections",
+        "operationId": "create_subscription",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/subscriptions/{subscription_id}/pause": {
+      "post": {
+        "operationId": "pause_subscription",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/subscriptions/{subscription_id}/resume": {
+      "post": {
+        "operationId": "resume_subscription",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "health",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/connections": {
+      "get": {
+        "operationId": "connections",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Connection"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "connect",
         "security": [
           {
             "bearer": []
@@ -49,192 +386,280 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Owned result"
-          },
           "201": {
-            "description": "Durable owned command or newly created resource"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Connection"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/auth/providers": {
-      "get": {
-        "operationId": "get__v1_auth_providers",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/oauth/gmail/start": {
+    "/v1/connections/{connection_id}/reconnect": {
       "post": {
-        "operationId": "post__v1_oauth_gmail_start",
+        "operationId": "reconnect",
         "security": [
           {
             "bearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconnectInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Connection"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/oauth/outlook/start": {
-      "post": {
-        "operationId": "post__v1_oauth_outlook_start",
+    "/v1/connections/{connection_id}/limits": {
+      "patch": {
+        "operationId": "limits",
         "security": [
           {
             "bearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionLimits"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Connection"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/oauth/google-drive/start": {
-      "post": {
-        "operationId": "post__v1_oauth_google_drive_start",
+    "/v1/connections/{connection_id}/resources": {
+      "patch": {
+        "operationId": "resources",
         "security": [
           {
             "bearer": []
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/oauth/google-sheets/start": {
-      "post": {
-        "operationId": "post__v1_oauth_google_sheets_start",
-        "security": [
+        "parameters": [
           {
-            "bearer": []
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourcesInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Connection"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/oauth/google-calendar/start": {
-      "post": {
-        "operationId": "post__v1_oauth_google_calendar_start",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/connections/{id}": {
+    "/v1/connections/{connection_id}": {
       "delete": {
-        "operationId": "delete__v1_connections_id_",
+        "operationId": "disconnect",
         "security": [
           {
             "bearer": []
@@ -242,8 +667,8 @@
         ],
         "parameters": [
           {
+            "name": "connection_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -252,26 +677,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/connections/{id}/capabilities": {
+    "/v1/connections/{connection_id}/capabilities": {
       "get": {
-        "operationId": "get__v1_connections_id_capabilities",
+        "operationId": "capabilities",
         "security": [
           {
             "bearer": []
@@ -279,8 +732,8 @@
         ],
         "parameters": [
           {
+            "name": "connection_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -289,26 +742,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
     "/v1/actions": {
       "get": {
-        "operationId": "get__v1_actions",
+        "operationId": "actions",
         "security": [
           {
             "bearer": []
@@ -316,24 +797,55 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionReceipt"
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       },
       "post": {
-        "operationId": "post__v1_actions",
+        "operationId": "submit",
         "security": [
           {
             "bearer": []
@@ -350,30 +862,55 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Owned result"
-          },
           "202": {
-            "description": "Durable owned command or newly created resource"
+            "description": "Durably accepted command",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/actions/{id}": {
+    "/v1/actions/{action_id}": {
       "get": {
-        "operationId": "get__v1_actions_id_",
+        "operationId": "action",
         "security": [
           {
             "bearer": []
@@ -381,8 +918,8 @@
         ],
         "parameters": [
           {
+            "name": "action_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -391,26 +928,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/actions/{id}/result": {
+    "/v1/actions/{action_id}/preview": {
       "get": {
-        "operationId": "get__v1_actions_id_result",
+        "operationId": "preview",
         "security": [
           {
             "bearer": []
@@ -418,8 +983,8 @@
         ],
         "parameters": [
           {
+            "name": "action_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -428,26 +993,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/actions/{id}/preview": {
+    "/v1/actions/{action_id}/result": {
       "get": {
-        "operationId": "get__v1_actions_id_preview",
+        "operationId": "result",
         "security": [
           {
             "bearer": []
@@ -455,8 +1048,8 @@
         ],
         "parameters": [
           {
+            "name": "action_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -465,26 +1058,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/actions/{id}/approve": {
+    "/v1/actions/{action_id}/approve": {
       "post": {
-        "operationId": "post__v1_actions_id_approve",
+        "operationId": "approve",
         "security": [
           {
             "bearer": []
@@ -492,36 +1113,74 @@
         ],
         "parameters": [
           {
+            "name": "action_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/actions/{id}/cancel": {
+    "/v1/actions/{action_id}/cancel": {
       "post": {
-        "operationId": "post__v1_actions_id_cancel",
+        "operationId": "cancel",
         "security": [
           {
             "bearer": []
@@ -529,8 +1188,8 @@
         ],
         "parameters": [
           {
+            "name": "action_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -539,26 +1198,310 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/actions/{action_id}/retry": {
+      "post": {
+        "operationId": "retry",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/actions/dead-letter": {
+      "get": {
+        "operationId": "dead_letter",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionReceipt"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/actions/{action_id}/reconcile": {
+      "post": {
+        "operationId": "reconcile",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Durably accepted command",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reconciliation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/reconciliations": {
+      "get": {
+        "operationId": "reconciliations",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Reconciliation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
     "/v1/policies": {
       "get": {
-        "operationId": "get__v1_policies",
+        "operationId": "policies",
         "security": [
           {
             "bearer": []
@@ -566,24 +1509,55 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Policy"
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       },
       "post": {
-        "operationId": "post__v1_policies",
+        "operationId": "create_policy",
         "security": [
           {
             "bearer": []
@@ -600,121 +1574,55 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Owned result"
-          },
           "201": {
-            "description": "Durable owned command or newly created resource"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/actions/{id}/retry": {
-      "post": {
-        "operationId": "post__v1_actions_id_retry",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
-    "/v1/export": {
-      "get": {
-        "operationId": "get__v1_export",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/data": {
+    "/v1/policies/{policy_id}": {
       "delete": {
-        "operationId": "delete__v1_data",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/events/{id}/content": {
-      "get": {
-        "operationId": "get__v1_events_id_content",
+        "operationId": "delete_policy",
         "security": [
           {
             "bearer": []
@@ -722,8 +1630,8 @@
         ],
         "parameters": [
           {
+            "name": "policy_id",
             "in": "path",
-            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -732,63 +1640,54 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
-          },
-          "400": {
-            "description": "Validation failed"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Not found (including another owner’s record)"
-          },
-          "409": {
-            "description": "Policy, capability, idempotency or state conflict"
-          }
-        }
-      }
-    },
-    "/v1/policies/{id}": {
-      "delete": {
-        "operationId": "delete__v1_policies_id_",
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Owned result"
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
     },
     "/v1/events": {
       "get": {
-        "operationId": "get__v1_events",
+        "operationId": "events",
         "security": [
           {
             "bearer": []
@@ -796,19 +1695,1234 @@
         ],
         "responses": {
           "200": {
-            "description": "Owned result"
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventEnvelope"
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation failed"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "Human control or origin required"
+          },
           "404": {
-            "description": "Not found (including another owner’s record)"
+            "description": "Owned resource not found"
           },
           "409": {
-            "description": "Policy, capability, idempotency or state conflict"
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/events/{event_id}/content": {
+      "get": {
+        "operationId": "event_content",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/export": {
+      "get": {
+        "operationId": "export",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/data": {
+      "delete": {
+        "operationId": "delete_data",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/oauth/{provider}/start": {
+      "post": {
+        "operationId": "oauth",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/auth/providers": {
+      "get": {
+        "operationId": "auth_providers",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/doctor": {
+      "get": {
+        "operationId": "doctor",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sync": {
+      "get": {
+        "operationId": "syncs",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SyncSchedule"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "create_sync",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sync/{sync_id}/pause": {
+      "post": {
+        "operationId": "pause_sync",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sync_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sync/{sync_id}/resume": {
+      "post": {
+        "operationId": "resume_sync",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sync_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/voice": {
+      "get": {
+        "operationId": "voices",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VoiceWorkflow"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "enroll_voice",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceWorkflow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/voice/{workflow_id}": {
+      "get": {
+        "operationId": "voice",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceWorkflow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/voice/{workflow_id}/cancel": {
+      "post": {
+        "operationId": "cancel_voice",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceWorkflow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/artifacts/{action_id}": {
+      "get": {
+        "operationId": "artifact",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/webhooks": {
+      "get": {
+        "operationId": "webhooks",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "create_webhook",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/v1/webhooks/{webhook_id}": {
+      "patch": {
+        "operationId": "bind_webhook",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookBinding"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_webhook",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Human control or origin required"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Policy, capability, grant or state conflict"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         }
       }
@@ -822,6 +2936,1085 @@
       }
     },
     "schemas": {
+      "WebhookInput": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 1000
+          },
+          "expiresAt": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "audience": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "serviceEmail": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "subscriptionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "resourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "inboundWaitSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30
+          }
+        },
+        "required": [
+          "connectionId"
+        ],
+        "additionalProperties": false
+      },
+      "WebhookBinding": {
+        "type": "object",
+        "properties": {
+          "subscriptionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "resourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "expiresAt": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReconcileInput": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConnectionLimits": {
+        "type": "object",
+        "properties": {
+          "maxActionsPerMinute": {
+            "default": 60,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "maxQueued": {
+            "default": 1000,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "maxCallSecondsPerDay": {
+            "default": 3600,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 86400
+          },
+          "maxSpendMicrosPerDay": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "unitCostMicros": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Policy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inputEquals": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,99}$"
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "expiresAt": {
+            "type": "number"
+          },
+          "maxActions": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "used": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "connectionId",
+          "operations",
+          "recipients",
+          "resources",
+          "expiresAt",
+          "maxActions",
+          "used"
+        ],
+        "additionalProperties": false
+      },
+      "EventEnvelope": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "const": 1
+          },
+          "provider": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "contentRef": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "provider",
+          "id",
+          "owner",
+          "connectionId",
+          "sourceId",
+          "type",
+          "createdAt",
+          "contentRef"
+        ],
+        "additionalProperties": false
+      },
+      "SyncSchedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "source": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "intervalSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "blocked"
+            ]
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "nextRunAt": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "cursor": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "leaseToken": {
+            "type": "string"
+          },
+          "leaseUntil": {
+            "type": "number"
+          },
+          "failures": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "error": {
+            "type": "string"
+          },
+          "bootstrapPages": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "maxBootstrapPages": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "connectionId",
+          "source",
+          "resource",
+          "intervalSeconds",
+          "state",
+          "generation",
+          "nextRunAt",
+          "createdAt",
+          "failures",
+          "bootstrapPages",
+          "maxBootstrapPages"
+        ],
+        "additionalProperties": false
+      },
+      "VoiceWorkflow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "requestDigest": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "number"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "enrolling",
+              "auditioning",
+              "reviewing",
+              "activating",
+              "generating",
+              "fetching",
+              "delivering",
+              "ready",
+              "failed",
+              "unknown_outcome",
+              "cancelled"
+            ]
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "artifactActionId": {
+            "type": "string"
+          },
+          "auditionArtifactActionId": {
+            "type": "string"
+          },
+          "deliveryActionId": {
+            "type": "string"
+          },
+          "artifactLink": {
+            "type": "string"
+          },
+          "deliveryState": {
+            "type": "string",
+            "enum": [
+              "attachment",
+              "authenticated_link",
+              "manual"
+            ]
+          },
+          "deliveryError": {
+            "type": "string"
+          },
+          "scriptRef": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "object",
+            "properties": {
+              "connectionId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "recipient": {
+                "type": "string"
+              },
+              "transport": {
+                "type": "string",
+                "enum": [
+                  "rcs",
+                  "sms",
+                  "mms"
+                ]
+              }
+            },
+            "required": [
+              "connectionId",
+              "recipient"
+            ],
+            "additionalProperties": false
+          },
+          "error": {
+            "type": "string"
+          },
+          "leaseToken": {
+            "type": "string"
+          },
+          "leaseUntil": {
+            "type": "number"
+          },
+          "nextRunAt": {
+            "type": "number"
+          },
+          "poll": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "connectionId",
+          "createdAt",
+          "updatedAt",
+          "state",
+          "actionId",
+          "nextRunAt",
+          "poll"
+        ],
+        "additionalProperties": false
+      },
+      "Reconciliation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "evidenceActionId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "checking",
+              "matched",
+              "inconclusive",
+              "failed"
+            ]
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "number"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "actionId",
+          "evidenceActionId",
+          "state",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Subscription": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "connectionRevision": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "source": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "routeId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "topicName": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "blocked",
+              "unknown_outcome"
+            ]
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "nextRunAt": {
+            "type": "number"
+          },
+          "expiresAt": {
+            "type": "number"
+          },
+          "providerId": {
+            "type": "string"
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "failures": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "leaseToken": {
+            "type": "string"
+          },
+          "leaseUntil": {
+            "type": "number"
+          },
+          "requestedAt": {
+            "type": "number"
+          },
+          "requestRef": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "connectionId",
+          "connectionRevision",
+          "source",
+          "resource",
+          "routeId",
+          "state",
+          "generation",
+          "createdAt",
+          "nextRunAt",
+          "failures"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionInput": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "resource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "routeId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "topicName": {
+            "type": "string",
+            "pattern": "^projects\\/[A-Za-z0-9_.:-]+\\/topics\\/[A-Za-z0-9_.~-]+$"
+          }
+        },
+        "required": [
+          "connectionId",
+          "source",
+          "resource",
+          "routeId"
+        ],
+        "additionalProperties": false
+      },
+      "Capabilities": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "qualification": {
+            "type": "string",
+            "enum": [
+              "automated_only",
+              "provider_qualified"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "disconnected",
+              "unavailable"
+            ]
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "risk": {
+                  "type": "string",
+                  "enum": [
+                    "read",
+                    "draft",
+                    "write",
+                    "destructive"
+                  ]
+                },
+                "scopes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "resourceKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "recipientKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "policyKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "secretKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stagingKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stagedResult": {
+                  "type": "boolean"
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Capabilities___schema0"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "risk",
+                "scopes",
+                "inputSchema"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "provider",
+          "version",
+          "qualification",
+          "status",
+          "operations"
+        ],
+        "additionalProperties": false
+      },
+      "Capabilities___schema0": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Capabilities___schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Capabilities___schema0"
+            }
+          }
+        ]
+      },
+      "Connection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "credentialRef": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "disconnected",
+              "unavailable"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "maxActionsPerMinute": {
+                "default": 60,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
+              "maxQueued": {
+                "default": 1000,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "maxCallSecondsPerDay": {
+                "default": 3600,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              "maxSpendMicrosPerDay": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "unitCostMicros": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000
+                }
+              }
+            },
+            "required": [
+              "maxActionsPerMinute",
+              "maxQueued",
+              "maxCallSecondsPerDay",
+              "unitCostMicros"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "provider",
+          "accountId",
+          "scopes",
+          "resources",
+          "credentialRef",
+          "status",
+          "revision",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ActionReceipt": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "connectionRevision": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "operation": {
+            "type": "string"
+          },
+          "inputDigest": {
+            "type": "string"
+          },
+          "inputRef": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "awaiting_approval",
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "unknown_outcome"
+            ]
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "number"
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "leaseToken": {
+            "type": "string"
+          },
+          "leaseUntil": {
+            "type": "number"
+          },
+          "policyId": {
+            "type": "string"
+          },
+          "approval": {
+            "type": "object",
+            "properties": {
+              "digest": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "digest",
+              "expiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "providerId": {
+            "type": "string"
+          },
+          "outputRef": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "providerState": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "nextAttemptAt": {
+            "type": "number"
+          },
+          "callSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "reservedCostMicros": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "connectionId",
+          "connectionRevision",
+          "operation",
+          "inputDigest",
+          "inputRef",
+          "idempotencyKey",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "attempts"
+        ],
+        "additionalProperties": false
+      },
+      "JsonValue": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#"
+            }
+          }
+        ]
+      },
       "ActionRequest": {
         "type": "object",
         "properties": {
@@ -841,7 +4034,7 @@
               "type": "string"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/__schema0"
+              "$ref": "#/components/schemas/ActionRequest___schema0"
             }
           },
           "idempotencyKey": {
@@ -856,40 +4049,38 @@
           "input",
           "idempotencyKey"
         ],
-        "additionalProperties": false,
-        "$defs": {
-          "__schema0": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/__schema0"
-                }
-              },
-              {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string"
-                },
-                "additionalProperties": {
-                  "$ref": "#/$defs/__schema0"
-                }
-              }
-            ]
+        "additionalProperties": false
+      },
+      "ActionRequest___schema0": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActionRequest___schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ActionRequest___schema0"
+            }
           }
-        }
+        ]
       },
       "ConnectionInput": {
         "type": "object",
@@ -916,8 +4107,7 @@
         },
         "required": [
           "provider",
-          "credentials",
-          "resources"
+          "credentials"
         ],
         "additionalProperties": false
       },
@@ -950,6 +4140,27 @@
               "type": "string"
             }
           },
+          "inputEquals": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,99}$"
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
           "expiresAt": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -964,8 +4175,6 @@
         "required": [
           "connectionId",
           "operations",
-          "recipients",
-          "resources",
           "expiresAt",
           "maxActions"
         ],
@@ -982,6 +4191,222 @@
           "cancelled",
           "unknown_outcome"
         ]
+      },
+      "ResourcesInput": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        },
+        "required": [
+          "resources"
+        ],
+        "additionalProperties": false
+      },
+      "ReconnectInput": {
+        "type": "object",
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "resources": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        },
+        "required": [
+          "credentials"
+        ],
+        "additionalProperties": false
+      },
+      "SyncInput": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "resource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "intervalSeconds": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 86400
+          },
+          "maxBootstrapPages": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "connectionId",
+          "source",
+          "resource"
+        ],
+        "additionalProperties": false
+      },
+      "VoiceInput": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "reference": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VoiceInput___schema0"
+            }
+          },
+          "script": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "origin": {
+            "type": "object",
+            "properties": {
+              "connectionId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "recipient": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "transport": {
+                "type": "string",
+                "enum": [
+                  "rcs",
+                  "sms",
+                  "mms"
+                ]
+              }
+            },
+            "required": [
+              "connectionId",
+              "recipient"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "connectionId",
+          "idempotencyKey",
+          "reference"
+        ],
+        "additionalProperties": false
+      },
+      "VoiceInput___schema0": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoiceInput___schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VoiceInput___schema0"
+            }
+          }
+        ]
+      },
+      "ApprovalInput": {
+        "type": "object",
+        "properties": {
+          "digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "digest"
+        ],
+        "additionalProperties": false
+      },
+      "OAuthInput": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "default": [],
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "scopes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "additionalProperties": false
       }
     }
   }

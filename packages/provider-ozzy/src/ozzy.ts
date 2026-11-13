@@ -1,8 +1,10 @@
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { ConnectorError, type Operation } from "@splitin/spiderman-contracts";
 import type { Provider, ProviderContext } from "@splitin/spiderman-core";
 import {
   json,
+  binary,
   required,
   localEndpoint,
   type Http,
@@ -44,9 +46,30 @@ export class OzzyProvider implements Provider {
           .strict(),
       ),
       op("voice.generate", "write", z.object({ voiceId: id, text }).strict()),
+      {
+        ...op(
+          "voice.artifact",
+          "read",
+          z
+            .object({
+              artifactId: id,
+              checksum: z
+                .string()
+                .regex(/^[a-f0-9]{64}$/)
+                .optional(),
+              size: z.number().int().positive().max(6_000_000).optional(),
+            })
+            .strict(),
+        ),
+        stagedResult: true,
+      },
       op("voice.job", "read", z.object({ jobId: id }).strict()),
       op("voice.delete", "destructive", z.object({ voiceId: id }).strict()),
-    ],
+    ].map((operation) =>
+      operation.name === "voice.enroll"
+        ? { ...operation, stagingKeys: ["audioBase64"] }
+        : operation,
+    ),
   };
   constructor(
     readonly origins: readonly string[],
@@ -72,6 +95,40 @@ export class OzzyProvider implements Provider {
     const a = spec.input.parse(raw) as any,
       origin = localEndpoint(ctx.credentials, this.origins),
       token = required(ctx.credentials, "apiKey");
+    if (name === "voice.artifact") {
+      const data = await binary(
+        this.http,
+        origin + "/v1/artifacts/" + a.artifactId,
+        { headers: { Authorization: "Bearer " + token }, signal: ctx.signal },
+      );
+      if (
+        a.checksum &&
+        createHash("sha256").update(data.bytes).digest("hex") !== a.checksum
+      )
+        throw new ConnectorError("artifact_checksum_mismatch");
+      if (a.size !== undefined && data.bytes.length !== a.size)
+        throw new ConnectorError("artifact_size_mismatch");
+      if (
+        ![
+          "audio/wav",
+          "audio/mpeg",
+          "audio/mp4",
+          "audio/ogg",
+          "audio/webm",
+        ].includes(data.contentType)
+      )
+        throw new ConnectorError("artifact_type_unsupported");
+      return {
+        providerId: a.artifactId,
+        data: {
+          contentBase64: data.bytes.toString("base64"),
+          contentType: data.contentType,
+          filename:
+            a.artifactId +
+            (data.contentType === "audio/mpeg" ? ".mp3" : ".wav"),
+        },
+      };
+    }
     let path = "",
       method = "GET",
       body: unknown;
@@ -94,6 +151,7 @@ export class OzzyProvider implements Provider {
           }),
           "reference",
         );
+        await ctx.beforeDispatch?.();
         let response;
         try {
           response = await this.http(origin + "/v1/voices", {
@@ -115,6 +173,8 @@ export class OzzyProvider implements Provider {
             response.status >= 500,
           );
         const data: any = await response.json();
+        if (typeof data.id !== "string" || !data.id)
+          throw new ConnectorError("voice_enrollment_receipt_missing", true);
         return { providerId: data.id, data };
       }
       case "voice.audition":
@@ -144,7 +204,11 @@ export class OzzyProvider implements Provider {
             undefined,
             ctx.signal,
           );
-          if (audition.state !== "completed" || audition.voice_id !== a.voiceId)
+          if (
+            audition.state !== "completed" ||
+            audition.voice_id !== a.voiceId ||
+            audition.purpose !== "audition"
+          )
             throw new ConnectorError("audition_not_ready_or_wrong_voice");
         }
         path = "/v1/voices/" + a.voiceId + "/activate";
@@ -170,6 +234,19 @@ export class OzzyProvider implements Provider {
       ctx.signal,
       { "Idempotency-Key": ctx.idempotencyKey },
     );
-    return { providerId: data.id, data };
+    if (
+      ["voice.audition", "voice.generate"].includes(name) &&
+      (!data.id || typeof data.id !== "string")
+    )
+      throw new ConnectorError("voice_job_receipt_missing", true);
+    if (
+      name === "voice.activate" &&
+      (data.id !== a.voiceId || data.active !== true)
+    )
+      throw new ConnectorError("voice_activation_receipt_invalid", true);
+    return {
+      providerId: data.id ?? (name === "voice.delete" ? a.voiceId : undefined),
+      data,
+    };
   }
 }

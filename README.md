@@ -2,7 +2,7 @@
 
 Personal account connectors for agents, with durable actions and human approval.
 
-**Development preview: `0.1.0-alpha.1`.** Automated tests cover local execution and simulated provider responses. Real accounts, physical devices, hosted capacity and provider approvals are unqualified. Do not treat a listed adapter as a production-ready connection. See [adapter status](docs/adapters.md).
+**Development preview source: `0.1.0-alpha.2`.** Automated tests cover local execution and simulated provider responses. Real accounts, physical devices, hosted capacity and provider approvals are unqualified. Do not treat a listed adapter as a production-ready connection. See [adapter status](docs/adapters.md).
 
 Spiderman provides a TypeScript execution engine, SQLite and PostgreSQL stores, encrypted credentials, an HTTP service, TypeScript/Python clients, CLI and MCP. Agent and human requests share the same owner and policy checks. A connection never grants another organization member access.
 
@@ -38,19 +38,19 @@ Use `connect` with a provider credential JSON object on standard input; it verif
 ## Embedding
 
 ```ts
-import { Engine } from '@splitin/spiderman-core';
-import { SqliteStore } from '@splitin/spiderman-store-sqlite';
-import { EncryptedVault, masterKey } from '@splitin/spiderman-vault';
-import { GoogleProvider, refreshing } from '@splitin/spiderman-providers';
+import { Engine } from "@splitin/spiderman-core";
+import { SqliteStore } from "@splitin/spiderman-store-sqlite";
+import { EncryptedVault, masterKey } from "@splitin/spiderman-vault";
+import { GoogleProvider, refreshing } from "@splitin/spiderman-providers";
 
-const store = new SqliteStore('./spiderman.db');
+const store = new SqliteStore("./spiderman.db");
 const engine = new Engine(store, new EncryptedVault(store, masterKey()));
-engine.register(refreshing(new GoogleProvider('gmail')));
+engine.register(refreshing(new GoogleProvider("gmail")));
 // Bind owner from trusted host authentication; never from model arguments.
 const connections = await engine.connections(authenticatedOwnerId);
 ```
 
-Modules are separately installable after publication. Until then build from this checkout or install the generated tarball set together. An embedded host is responsible for authenticating callers before invoking the core. The HTTP service additionally distinguishes human controls from agent calls.
+Modules are separately installable after publication. Build from this checkout or install an individual generated tarball; internal Spiderman dependencies are bundled, while public external dependencies install from npm. An embedded host is responsible for authenticating callers before invoking the core. The HTTP service additionally distinguishes human controls from agent calls.
 
 ## Commands and receipts
 
@@ -58,6 +58,6 @@ Reads and draft preparation queue automatically. Sends and provider changes requ
 
 `awaiting_approval → queued → running → succeeded | failed | unknown_outcome`
 
-Queued means a durable record exists. Succeeded means the adapter obtained its operation-specific response; an accepted SMTP/Graph/message submission is not recipient delivery. Unknown outcomes are held instead of being sent again. Only failed read operations have bounded manual retry support in this preview.
+Queued means a durable record exists. Succeeded means the adapter obtained its operation-specific response; an accepted SMTP/message submission is not recipient delivery. Graph sends use an immutable draft identity and require Sent confirmation or remain uncertain. Unknown outcomes are held instead of being sent again. Failed reads have bounded manual retry support. Read-only Gmail, IMAP Sent, Graph and Calendar reconciliation can resolve uncertain actions without repeating a mutation.
 
-See [architecture](docs/architecture.md), [API schema](contracts/openapi.json), [security](SECURITY.md), [releases](docs/releases.md) and [provenance](THIRD_PARTY_NOTICES.md).
+See [durable runtime and workflow setup](docs/runtime.md), [architecture](docs/architecture.md), [API schema](contracts/openapi.json), [security](SECURITY.md), [releases](docs/releases.md) and [provenance](THIRD_PARTY_NOTICES.md).

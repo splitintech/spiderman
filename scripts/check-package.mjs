@@ -24,19 +24,30 @@ for (const path of packages) {
     if (names.has(name))
       assert.equal(version, manifest.version, "internal dependency mismatch");
   const packed = JSON.parse(
-    execFileSync("npm", ["pack", "--offline", "--ignore-scripts", "--dry-run", "--json", "./" + path], {
-      encoding: "utf8",
-      timeout: 30000,
-      env: {
-        ...process.env,
-        npm_config_cache:
-          process.env.npm_config_cache ?? "/tmp/spiderman-npm-cache",
+    execFileSync(
+      "npm",
+      [
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--dry-run",
+        "--json",
+        "./" + path,
+      ],
+      {
+        encoding: "utf8",
+        timeout: 30000,
+        env: {
+          ...process.env,
+          npm_config_cache:
+            process.env.npm_config_cache ?? "/tmp/spiderman-npm-cache",
+        },
       },
-    }),
+    ),
   )[0];
   for (const { path: file } of packed.files)
     assert.ok(
-      /^(dist\/[\w./-]+\.(?:js|d\.ts)|README\.md|LICENSE|THIRD_PARTY_NOTICES\.md|package\.json)$/.test(
+      /^(dist\/[\w./-]+\.(?:js|cjs|d\.ts)|README\.md|LICENSE|THIRD_PARTY_NOTICES\.md|package\.json)$/.test(
         file,
       ),
       "unexpected packaged file: " + file,
@@ -66,6 +77,7 @@ const forbidden = [
   /\/Users\/[\w.-]+\//,
 ];
 for (const file of files) {
+  if (!existsSync(file)) continue; // A staged or working-tree deletion has no distributable content.
   if (!/\.(?:ts|mjs|py|json|md|yml|yaml|txt)$/.test(file)) continue;
   const text = readFileSync(file, "utf8");
   for (const expression of forbidden)

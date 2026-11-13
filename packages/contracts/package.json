@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-contracts",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman contracts module: personal account connectors and agent bridge",

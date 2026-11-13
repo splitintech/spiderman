@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-mcp",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman mcp module: personal account connectors and agent bridge",
@@ -28,8 +28,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@splitin/spiderman-core": "0.1.0-alpha.1",
-    "@splitin/spiderman-contracts": "0.1.0-alpha.1",
+    "@splitin/spiderman-core": "0.1.0-alpha.2",
+    "@splitin/spiderman-contracts": "0.1.0-alpha.2",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^4.3.6"
   }

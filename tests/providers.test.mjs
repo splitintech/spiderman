@@ -155,16 +155,18 @@ test("Graph pagination refuses credential exfiltration through an arbitrary next
   );
   assert.equal(calls, 0);
 });
-test("Graph 202 is recorded as submission, not recipient delivery", async () => {
+test("Graph accepted response without draft identity is uncertain", async () => {
   const p = new OutlookProvider(
     async () => new Response(null, { status: 202 }),
   );
-  const result = await p.execute(
-    "mail.send",
-    { recipients: ["bob@example.test"], subject: "Fixture", body: "Fixture" },
-    context({ accessToken: "fixture" }),
+  await assert.rejects(
+    p.execute(
+      "mail.send",
+      { recipients: ["bob@example.test"], subject: "Fixture", body: "Fixture" },
+      context({ accessToken: "fixture" }),
+    ),
+    (error) => error.code === "graph_draft_receipt_missing" && error.uncertain,
   );
-  assert.deepEqual(result.data, { accepted: true, delivery: "unverified" });
 });
 test("transport loss during a mutation is uncertain, not successful or safely retryable", async () => {
   const p = new GoogleProvider("google-calendar", async () => {

@@ -24,10 +24,13 @@ export interface LoopbackAuthorizeOptions<T> {
     redirectUri: string;
   }) => Promise<T>;
   readonly timeoutMs?: number;
+  readonly pageTitle?:string;
+  readonly rejectMismatchedState?:boolean;
 }
 
-const PAGE = (message: string) =>
-  `<!doctype html><meta charset="utf-8"><title>Spiderman</title><p style="font:16px system-ui;margin:3rem">${message}</p>`;
+const escapeHtml=(value:string)=>value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
+const PAGE = (message: string,title='Spiderman') =>
+  `<!doctype html><meta charset="utf-8"><title>${escapeHtml(title)}</title><p style="font:16px system-ui;margin:3rem">${message}</p>`;
 
 async function listen(
   server: Server,
@@ -71,6 +74,7 @@ export async function loopbackAuthorize<T>(
       !error && code !== null && url.searchParams.get("state") === state;
     if (url.searchParams.get("state") !== state) {
       res.writeHead(400).end();
+      if(options.rejectMismatchedState){done=true;settle(new Error('callback had a missing code or a mismatched state'));}
       return;
     }
     done = true;
@@ -81,7 +85,7 @@ export async function loopbackAuthorize<T>(
       PAGE(
         ok
           ? "Connected. You can close this tab and return to the terminal."
-          : "Authorization failed. Return to the terminal.",
+          : "Authorization failed. Return to the terminal.", options.pageTitle,
       ),
     );
     settle(
