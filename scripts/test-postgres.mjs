@@ -21,6 +21,7 @@ try {
       "--auth-local=trust",
       "--auth-host=reject",
       "--no-locale",
+      "--encoding=UTF8",
     ],
     { stdio: "pipe" },
   );

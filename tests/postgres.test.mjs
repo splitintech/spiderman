@@ -35,6 +35,18 @@ test(
     };
     try {
       await first.migrate();
+      assert.equal(
+        (await first.pool.query("SHOW server_encoding")).rows[0]
+          .server_encoding,
+        "UTF8",
+      );
+      await first.transaction((tx) =>
+        tx.put("unicode", "id", "alice", { id: "id", text: "नमस्ते 👋 – café" }),
+      );
+      assert.equal(
+        (await second.transaction((tx) => tx.get("unicode", "id"))).text,
+        "नमस्ते 👋 – café",
+      );
       await assert.rejects(
         first.transaction(async (tx) => {
           await tx.put("rollback", "id", "alice", { id: "id" });
