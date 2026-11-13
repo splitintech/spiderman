@@ -32,3 +32,5 @@ The TypeScript client accepts a base URL and token callback. The Python client u
 ## Container
 
 Build the included Dockerfile and run `init`, `serve` and `worker` with durable volumes or PostgreSQL. Containers require an operator-supplied master key; an interactive desktop keychain is unavailable. The image runs as a non-root user and has no embedded credentials. Image build/publication and hosted qualification are separate release evidence.
+
+Development releases may provide `spiderman-container.tar.gz`, exported only after the CI image build and non-root initialization check succeed. Verify its published SHA256, then use `docker load --input spiderman-container.tar.gz`. This distribution is a Docker image archive; it does not establish a container-registry publication or a deployed service.
