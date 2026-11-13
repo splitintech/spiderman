@@ -1,0 +1,33 @@
+{
+  "name": "@splitin/spiderman-contracts",
+  "version": "0.1.0-alpha.1",
+  "type": "module",
+  "license": "MIT",
+  "description": "Spiderman contracts module: personal account connectors and agent bridge",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/splitintech/spiderman.git",
+    "directory": "packages/contracts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
+}

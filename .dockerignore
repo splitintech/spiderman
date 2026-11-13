@@ -1,0 +1,8 @@
+.git
+node_modules
+**/dist
+artifacts
+*.db*
+.env*
+tests
+python

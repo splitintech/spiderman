@@ -1,0 +1,62 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/contracts"
+    },
+    {
+      "path": "packages/core"
+    },
+    {
+      "path": "packages/store-sqlite"
+    },
+    {
+      "path": "packages/store-postgres"
+    },
+    {
+      "path": "packages/vault"
+    },
+    {
+      "path": "packages/providers"
+    },
+    {
+      "path": "packages/server"
+    },
+    {
+      "path": "packages/sdk"
+    },
+    {
+      "path": "packages/cli"
+    },
+    {
+      "path": "packages/mcp"
+    },
+    {
+      "path": "packages/provider-kit"
+    },
+    {
+      "path": "packages/provider-google"
+    },
+    {
+      "path": "packages/provider-outlook"
+    },
+    {
+      "path": "packages/provider-email"
+    },
+    {
+      "path": "packages/provider-ozzy"
+    },
+    {
+      "path": "packages/provider-whatsapp"
+    },
+    {
+      "path": "packages/provider-imessage"
+    },
+    {
+      "path": "packages/provider-plivo"
+    },
+    {
+      "path": "packages/provider-rcs"
+    }
+  ]
+}

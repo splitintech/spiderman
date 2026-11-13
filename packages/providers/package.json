@@ -1,0 +1,41 @@
+{
+  "name": "@splitin/spiderman-providers",
+  "version": "0.1.0-alpha.1",
+  "type": "module",
+  "license": "MIT",
+  "description": "Spiderman providers module: personal account connectors and agent bridge",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/splitintech/spiderman.git",
+    "directory": "packages/providers"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@splitin/spiderman-provider-kit": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-google": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-outlook": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-email": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-ozzy": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-whatsapp": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-imessage": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-plivo": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-rcs": "0.1.0-alpha.1"
+  }
+}

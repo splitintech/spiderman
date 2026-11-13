@@ -1,0 +1,35 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../store-sqlite"
+    },
+    {
+      "path": "../vault"
+    },
+    {
+      "path": "../providers"
+    },
+    {
+      "path": "../server"
+    },
+    {
+      "path": "../sdk"
+    },
+    {
+      "path": "../mcp"
+    },
+    {
+      "path": "../store-postgres"
+    }
+  ]
+}

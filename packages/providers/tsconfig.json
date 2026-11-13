@@ -1,0 +1,38 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../provider-kit"
+    },
+    {
+      "path": "../provider-google"
+    },
+    {
+      "path": "../provider-outlook"
+    },
+    {
+      "path": "../provider-email"
+    },
+    {
+      "path": "../provider-ozzy"
+    },
+    {
+      "path": "../provider-whatsapp"
+    },
+    {
+      "path": "../provider-imessage"
+    },
+    {
+      "path": "../provider-plivo"
+    },
+    {
+      "path": "../provider-rcs"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@splitin/spiderman-provider-ozzy",
+  "version": "0.1.0-alpha.1",
+  "type": "module",
+  "license": "MIT",
+  "description": "Spiderman provider-ozzy adapter",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/splitintech/spiderman.git",
+    "directory": "packages/provider-ozzy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@splitin/spiderman-core": "0.1.0-alpha.1",
+    "@splitin/spiderman-contracts": "0.1.0-alpha.1",
+    "@splitin/spiderman-provider-kit": "0.1.0-alpha.1",
+    "zod": "^4.3.6"
+  }
+}

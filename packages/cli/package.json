@@ -1,0 +1,44 @@
+{
+  "name": "@splitin/spiderman-cli",
+  "version": "0.1.0-alpha.1",
+  "type": "module",
+  "license": "MIT",
+  "description": "Spiderman cli module: personal account connectors and agent bridge",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/splitintech/spiderman.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.8",
+    "@splitin/spiderman-core": "0.1.0-alpha.1",
+    "@splitin/spiderman-providers": "0.1.0-alpha.1",
+    "@splitin/spiderman-sdk": "0.1.0-alpha.1",
+    "@splitin/spiderman-server": "0.1.0-alpha.1",
+    "@splitin/spiderman-store-sqlite": "0.1.0-alpha.1",
+    "@splitin/spiderman-vault": "0.1.0-alpha.1",
+    "@splitin/spiderman-mcp": "0.1.0-alpha.1",
+    "@splitin/spiderman-store-postgres": "0.1.0-alpha.1"
+  },
+  "bin": {
+    "spiderman": "./dist/index.js"
+  }
+}

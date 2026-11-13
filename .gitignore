@@ -1,0 +1,13 @@
+node_modules/
+**/dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.db*
+*.sqlite*
+artifacts/
+__pycache__/
+*.egg-info/
+.venv/
+**/build/

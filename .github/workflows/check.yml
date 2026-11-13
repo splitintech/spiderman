@@ -1,0 +1,50 @@
+name: check
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  contracts-and-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: synthetic-test-password
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.1
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run check
+        env:
+          SPIDERMAN_TEST_DATABASE_URL: postgresql://postgres:synthetic-test-password@localhost:5432/postgres
+      - run: npm run pack:all && npm run test:install && npm run licenses
+      - run: python -m pip wheel --no-deps ./python --wheel-dir artifacts/python
+      - run: npm audit --audit-level=high
+      - uses: actions/upload-artifact@v4
+        with:
+          name: development-packages
+          path: artifacts/
+  browsers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.1
+          cache: npm
+      - run: npm ci && npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-proof
+          path: artifacts/browser/
