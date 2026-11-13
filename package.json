@@ -1,6 +1,6 @@
 {
   "name": "spiderman-workspace",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -11,16 +11,18 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "tsc -b --force",
+    "build": "tsc -b --force && node scripts/build-standalone-cjs.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
-    "check": "npm test && node scripts/generate.mjs --check && node scripts/check-package.mjs",
+    "check": "npm test && node scripts/generate.mjs --check && node scripts/check-compatibility.mjs && node scripts/check-package.mjs",
     "pack:all": "node scripts/pack.mjs",
     "generate": "node scripts/generate.mjs",
     "test:browser": "playwright test",
     "test:postgres": "node scripts/test-postgres.mjs",
     "test:install": "node scripts/install-smoke.mjs",
     "licenses": "node scripts/licenses.mjs",
-    "format": "prettier --write packages scripts tests package.json tsconfig*.json playwright.config.mjs"
+    "format": "prettier --write packages scripts tests package.json tsconfig*.json playwright.config.mjs",
+    "test:install:boundary": "node scripts/install-boundary.mjs",
+    "check:archives": "node scripts/check-archives.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

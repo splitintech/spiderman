@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-provider-plivo",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman provider-plivo adapter",
@@ -28,9 +28,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@splitin/spiderman-core": "0.1.0-alpha.1",
-    "@splitin/spiderman-contracts": "0.1.0-alpha.1",
-    "@splitin/spiderman-provider-kit": "0.1.0-alpha.1",
+    "@splitin/spiderman-core": "0.1.0-alpha.2",
+    "@splitin/spiderman-contracts": "0.1.0-alpha.2",
+    "@splitin/spiderman-provider-kit": "0.1.0-alpha.2",
     "zod": "^4.3.6"
   }
 }

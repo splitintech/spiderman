@@ -2,7 +2,13 @@ import { DatabaseSync } from "node:sqlite";
 import type { Store, Transaction } from "@splitin/spiderman-core";
 import { mkdirSync, chmodSync, realpathSync } from "node:fs";
 import { dirname } from "node:path";
-const locks = new Map<string, { tail: Promise<unknown> }>();
+const lockKey = Symbol.for("net.splitin.spiderman.sqlite-locks.v1");
+const shared = globalThis as typeof globalThis & {
+  [lockKey]?: Map<string, { tail: Promise<unknown> }>;
+};
+const locks =
+  shared[lockKey] ??
+  (shared[lockKey] = new Map<string, { tail: Promise<unknown> }>());
 export class SqliteStore implements Store {
   private db: DatabaseSync;
   private lock: { tail: Promise<unknown> };

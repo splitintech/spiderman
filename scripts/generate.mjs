@@ -1,105 +1,92 @@
-import { jsonSchemas } from "@splitin/spiderman-contracts";
+import { jsonSchemas, apiOperations } from "@splitin/spiderman-contracts";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 const check = process.argv.includes("--check");
 async function save(path, content) {
   if (check) {
     if ((await readFile(path, "utf8")) !== content)
-      throw new Error("Generated contract is stale: " + path);
+      throw Error("Generated contract is stale: " + path);
   } else await writeFile(path, content);
 }
-const schemas = jsonSchemas();
-for (const schema of Object.values(schemas)) delete schema.$schema;
-const responses = {
-  200: { description: "Owned result" },
-  400: { description: "Validation failed" },
-  401: { description: "Authentication required" },
-  404: { description: "Not found (including another owner’s record)" },
-  409: { description: "Policy, capability, idempotency or state conflict" },
-};
-const paths = {};
-for (const [path, methods] of Object.entries({
-  "/v1/connections": ["get", "post"],
-  "/v1/auth/providers": ["get"],
-  ...Object.fromEntries(
-    [
-      "gmail",
-      "outlook",
-      "google-drive",
-      "google-sheets",
-      "google-calendar",
-    ].map((provider) => ["/v1/oauth/" + provider + "/start", ["post"]]),
-  ),
-  "/v1/connections/{id}": ["delete"],
-  "/v1/connections/{id}/capabilities": ["get"],
-  "/v1/actions": ["get", "post"],
-  "/v1/actions/{id}": ["get"],
-  "/v1/actions/{id}/result": ["get"],
-  "/v1/actions/{id}/preview": ["get"],
-  "/v1/actions/{id}/approve": ["post"],
-  "/v1/actions/{id}/cancel": ["post"],
-  "/v1/policies": ["get", "post"],
-  "/v1/actions/{id}/retry": ["post"],
-  "/v1/export": ["get"],
-  "/v1/data": ["delete"],
-  "/v1/events/{id}/content": ["get"],
-  "/v1/policies/{id}": ["delete"],
-  "/v1/events": ["get"],
-})) {
-  paths[path] = Object.fromEntries(
-    methods.map((method) => {
-      const name =
-        path === "/v1/actions"
-          ? "ActionRequest"
-          : path === "/v1/connections"
-            ? "ConnectionInput"
-            : path === "/v1/policies"
-              ? "PolicyInput"
-              : undefined;
-      return [
-        method,
-        {
-          operationId: method + "_" + path.replace(/\W+/g, "_"),
-          security: [{ bearer: [] }],
-          ...(path.includes("{id}")
-            ? {
-                parameters: [
-                  {
-                    in: "path",
-                    name: "id",
-                    required: true,
-                    schema: { type: "string" },
-                  },
-                ],
-              }
-            : {}),
-          ...(method === "post" && name
-            ? {
-                requestBody: {
-                  required: true,
-                  content: {
-                    "application/json": {
-                      schema: { $ref: "#/components/schemas/" + name },
-                    },
-                  },
-                },
-              }
-            : {}),
-          responses: {
-            ...responses,
-            ...(method === "post" &&
-            ["/v1/actions", "/v1/connections", "/v1/policies"].includes(path)
-              ? {
-                  [path === "/v1/actions" ? "202" : "201"]: {
-                    description:
-                      "Durable owned command or newly created resource",
-                  },
-                }
-              : {}),
+const schemas = jsonSchemas(),
+  components = {};
+function normalize(schema, prefix) {
+  if (Array.isArray(schema)) return schema.map((v) => normalize(v, prefix));
+  if (!schema || typeof schema !== "object") return schema;
+  const out = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (key === "$schema" || key === "$defs") continue;
+    out[key] =
+      key === "$ref" && value.startsWith("#/$defs/")
+        ? "#/components/schemas/" + prefix + "_" + value.slice(8)
+        : normalize(value, prefix);
+  }
+  return out;
+}
+for (const [name, schema] of Object.entries(schemas)) {
+  components[name] = normalize(schema, name);
+  for (const [def, value] of Object.entries(schema.$defs ?? {}))
+    components[name + "_" + def] = normalize(value, name);
+}
+const paths = {},
+  ref = (name) =>
+    name.endsWith("[]")
+      ? { type: "array", items: ref(name.slice(0, -2)) }
+      : { $ref: "#/components/schemas/" + name };
+for (const operation of apiOperations) {
+  const path = (paths[operation.path] ??= {}),
+    parameters = [...operation.path.matchAll(/\{(\w+)\}/g)].map((m) => ({
+      name: m[1],
+      in: "path",
+      required: true,
+      schema: { type: "string" },
+    }));
+  const status = operation.status ?? 200;
+  path[operation.method.toLowerCase()] = {
+    operationId: operation.name,
+    security: [{ bearer: [] }],
+    ...(parameters.length ? { parameters } : {}),
+    ...(operation.request
+      ? {
+          requestBody: {
+            required: true,
+            content: { "application/json": { schema: ref(operation.request) } },
+          },
+        }
+      : {}),
+    responses: {
+      [status]: {
+        description:
+          operation.status === 202
+            ? "Durably accepted command"
+            : "Owned result",
+        content: {
+          [operation.binary ? "application/octet-stream" : "application/json"]:
+            {
+              schema: operation.binary
+                ? { type: "string", format: "binary" }
+                : ref(operation.response ?? "JsonValue"),
+            },
+        },
+      },
+      400: {
+        description: "Invalid request",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["error"],
+              properties: { error: { type: "string" } },
+            },
           },
         },
-      ];
-    }),
-  );
+      },
+      401: { description: "Authentication required" },
+      403: { description: "Human control or origin required" },
+      404: { description: "Owned resource not found" },
+      409: { description: "Policy, capability, grant or state conflict" },
+      503: { description: "Service unavailable" },
+    },
+  };
 }
 await mkdir("contracts", { recursive: true });
 await save(
@@ -107,24 +94,124 @@ await save(
   JSON.stringify(
     {
       openapi: "3.1.0",
-      info: { title: "Spiderman API", version: "0.1.0-alpha.1" },
+      info: { title: "Spiderman API", version: "0.1.0-alpha.2" },
       paths,
       components: {
         securitySchemes: { bearer: { type: "http", scheme: "bearer" } },
-        schemas,
+        schemas: components,
       },
     },
     null,
     2,
   ) + "\n",
 );
+const header = "# Generated by scripts/generate.mjs. Do not edit.\n";
+function pyType(s) {
+  if (s.$ref)
+    return s.$ref.split("/").at(-1) === "JsonValue" ||
+      !Object.hasOwn(schemas, s.$ref.split("/").at(-1))
+      ? "Any"
+      : s.$ref.split("/").at(-1);
+  if (s.enum)
+    return "Literal[" + s.enum.map((x) => JSON.stringify(x)).join(", ") + "]";
+  if (s.anyOf || s.oneOf)
+    return [...new Set((s.anyOf ?? s.oneOf).map(pyType))].join(" | ");
+  if (s.type === "array") return "list[" + pyType(s.items ?? {}) + "]";
+  if (s.type === "object") return "dict[str, Any]";
+  return (
+    {
+      string: "str",
+      number: "float",
+      integer: "int",
+      boolean: "bool",
+      null: "None",
+    }[s.type] ?? "Any"
+  );
+}
+let models = header + "from typing import Any, Literal, TypedDict\n\n";
+for (const [name, s] of Object.entries(schemas)) {
+  if (s.type === "object") {
+    const required = Object.entries(s.properties ?? {}).filter(([key]) =>
+        (s.required ?? []).includes(key),
+      ),
+      optional = Object.entries(s.properties ?? {}).filter(
+        ([key]) => !(s.required ?? []).includes(key),
+      );
+    if (optional.length) {
+      models += "class _" + name + "Optional(TypedDict, total=False):\n";
+      for (const [key, value] of optional)
+        models += "    " + key + ": " + pyType(value) + "\n";
+      models += "\n";
+    }
+    models +=
+      "class " +
+      name +
+      "(" +
+      (optional.length ? "_" + name + "Optional" : "TypedDict") +
+      "):\n";
+    for (const [key, value] of required)
+      models += "    " + key + ": " + pyType(value) + "\n";
+    if (!required.length) models += "    pass\n";
+    models += "\n";
+  } else models += name + " = " + pyType(s) + "\n\n";
+}
 await mkdir("python/src/spiderman", { recursive: true });
-const states = schemas.ActionState.enum
-  .map((x) => JSON.stringify(x))
-  .join(", ");
-await save(
-  "python/src/spiderman/models.py",
-  "# Generated by scripts/generate.mjs. Do not edit.\nfrom typing import Any, Literal, TypedDict\n\nActionState = Literal[" +
-    states +
-    "]\n\nclass ActionRequest(TypedDict):\n    connectionId: str\n    operation: str\n    input: dict[str, Any]\n    idempotencyKey: str\n",
-);
+await save("python/src/spiderman/models.py", models.trimEnd() + "\n");
+const snake = (s) => s.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase());
+let client = header + "from urllib.parse import quote\n\nclass GeneratedAPI:\n";
+for (const op of apiOperations) {
+  const paths = [...op.path.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+  const schema = op.request ? schemas[op.request] : undefined;
+  const required = op.bodyArgument
+    ? [op.bodyArgument]
+    : Object.keys(schema?.properties ?? {}).filter((k) =>
+        (schema.required ?? []).includes(k),
+      );
+  const optional = op.bodyArgument
+    ? []
+    : Object.keys(schema?.properties ?? {}).filter(
+        (k) => !(schema.required ?? []).includes(k),
+      );
+  const params = [
+    ...paths,
+    ...required.map(snake),
+    ...optional.map((k) => snake(k) + "=None"),
+  ];
+  client +=
+    "    def " +
+    op.name +
+    "(self" +
+    (params.length ? ", " + params.join(", ") : "") +
+    "):\n";
+  let path = JSON.stringify(op.path);
+  for (const key of paths)
+    path = path.replace("{" + key + "}", `" + quote(str(${key}), safe="") + "`);
+  let body = "None";
+  if (op.bodyArgument) body = op.bodyArgument;
+  else if (schema) {
+    client +=
+      "        body = {" +
+      required.map((k) => JSON.stringify(k) + ": " + snake(k)).join(", ") +
+      "}\n";
+    for (const key of optional)
+      client +=
+        "        if " +
+        snake(key) +
+        " is not None: body[" +
+        JSON.stringify(key) +
+        "] = " +
+        snake(key) +
+        "\n";
+    body = "body";
+  }
+  client +=
+    "        return self.request(" +
+    path +
+    ", " +
+    JSON.stringify(op.method) +
+    ", " +
+    body +
+    (op.binary ? ", binary=True" : "") +
+    ")\n\n";
+}
+await save("python/src/spiderman/api.py", client.trimEnd() + "\n");

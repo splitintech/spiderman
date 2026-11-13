@@ -28,12 +28,12 @@ jobs:
           cache: npm
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - run: npm ci
       - run: npm run check
         env:
           SPIDERMAN_TEST_DATABASE_URL: postgresql://postgres:synthetic-test-password@localhost:5432/postgres
-      - run: npm run pack:all && npm run test:install && npm run licenses
+      - run: npm run pack:all && npm run check:archives && npm run test:install && npm run test:install:boundary && npm run licenses
       - run: python -m pip wheel --no-deps ./python --wheel-dir artifacts/python
       - run: npm audit --audit-level=high
       - uses: actions/upload-artifact@v4

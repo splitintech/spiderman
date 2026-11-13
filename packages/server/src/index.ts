@@ -1,11 +1,27 @@
+import { WebhookIngress, installWebhooks } from "./webhooks.js";
+export { WebhookIngress } from "./webhooks.js";
 import type { Principal } from "./auth.js";
 export { delegatedAuthenticator, type Principal } from "./auth.js";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import {
+  limitsSchema,
+  reconcileInputSchema,
   connectionInputSchema,
+  reconnectInputSchema,
+  resourcesInputSchema,
+  syncInputSchema,
+  voiceInputSchema,
+  approvalInputSchema,
+  subscriptionInputSchema,
   ConnectorError,
 } from "@splitin/spiderman-contracts";
+import type {
+  SyncCoordinator,
+  VoiceCoordinator,
+  ReconciliationCoordinator,
+  SubscriptionCoordinator,
+} from "@splitin/spiderman-core";
 import type { Engine } from "@splitin/spiderman-core";
 export { installOAuth, type OAuthOptions } from "./oauth.js";
 export type Authenticate = (
@@ -14,6 +30,12 @@ export type Authenticate = (
 export interface ServerOptions {
   authenticate: Authenticate;
   allowedOrigins?: string[];
+  sync?: SyncCoordinator;
+  voice?: VoiceCoordinator;
+  webhookOrigin?: string;
+  reconciliation?: ReconciliationCoordinator;
+  subscriptions?: SubscriptionCoordinator;
+  requireWorker?: boolean;
 }
 export function createApp(engine: Engine, options: ServerOptions) {
   const app = new Hono<{
@@ -33,13 +55,25 @@ export function createApp(engine: Engine, options: ServerOptions) {
       return c.json({ error: "origin_denied" }, 403);
     await next();
   });
-  app.get("/health", (c) =>
-    c.json({
-      status: "ready",
-      schemaVersion: "1",
-      qualification: "automated_only",
-    }),
-  );
+  app.get("/live", (c) => c.json({ status: "alive" }));
+  const readiness = async () => {
+    try {
+      return (await engine.operationalHealth(options.requireWorker)).ready;
+    } catch {
+      return false;
+    }
+  };
+  app.get("/health", async (c) => {
+    const ready = await readiness();
+    return c.json(
+      {
+        status: ready ? "ready" : "unavailable",
+        schemaVersion: "1",
+        qualification: "automated_only",
+      },
+      ready ? 200 : 503,
+    );
+  });
   app.get("/", (c) => c.html(consoleHtml));
   app.get("/console.js", (c) =>
     c.body(consoleJs, 200, { "Content-Type": "application/javascript" }),
@@ -62,14 +96,106 @@ export function createApp(engine: Engine, options: ServerOptions) {
     const control =
       c.req.method !== "GET" &&
       (path === "/v1/connections" ||
+        (path.startsWith("/v1/connections/") && c.req.method !== "GET") ||
         path.startsWith("/v1/oauth/") ||
         path.startsWith("/v1/policies") ||
+        path.startsWith("/v1/sync") ||
+        path.startsWith("/v1/webhooks") ||
+        path.startsWith("/v1/subscriptions") ||
         path.endsWith("/approve") ||
         c.req.method === "DELETE");
     if (control && c.get("actorKind") !== "human")
       return c.json({ error: "human_control_required" }, 403);
     await next();
   });
+  app.get("/v1/health", async (c) => {
+    const ready = await readiness();
+    return c.json(
+      {
+        status: ready ? "ready" : "unavailable",
+        schemaVersion: "1",
+        qualification: "automated_only",
+      },
+      ready ? 200 : 503,
+    );
+  });
+  if (options.subscriptions) {
+    app.get("/v1/subscriptions", async (c) =>
+      c.json(await options.subscriptions!.list(c.get("owner"))),
+    );
+    app.post("/v1/subscriptions", async (c) =>
+      c.json(
+        await options.subscriptions!.create(
+          c.get("owner"),
+          subscriptionInputSchema.parse(await c.req.json()),
+        ),
+        201,
+      ),
+    );
+    app.post("/v1/subscriptions/:id/pause", async (c) =>
+      c.json(
+        await options.subscriptions!.pause(c.get("owner"), c.req.param("id")),
+      ),
+    );
+    app.post("/v1/subscriptions/:id/resume", async (c) =>
+      c.json(
+        await options.subscriptions!.resume(c.get("owner"), c.req.param("id")),
+      ),
+    );
+  }
+  if (options.reconciliation) {
+    app.get("/v1/reconciliations", async (c) =>
+      c.json(await options.reconciliation!.list(c.get("owner"))),
+    );
+    app.post("/v1/actions/:id/reconcile", async (c) => {
+      const body = reconcileInputSchema.parse(await c.req.json());
+      return c.json(
+        await options.reconciliation!.create(
+          c.get("owner"),
+          c.req.param("id"),
+          body.resource,
+        ),
+        202,
+      );
+    });
+  }
+  app.get("/v1/actions/dead-letter", async (c) =>
+    c.json(
+      (await engine.actions(c.get("owner"))).filter((a) =>
+        ["failed", "unknown_outcome"].includes(a.state),
+      ),
+    ),
+  );
+  if (options.voice) {
+    app.get("/v1/voice", async (c) =>
+      c.json(await options.voice!.list(c.get("owner"))),
+    );
+    app.get("/v1/voice/:id", async (c) =>
+      c.json(await options.voice!.get(c.get("owner"), c.req.param("id"))),
+    );
+    app.post("/v1/voice", async (c) => {
+      const body = voiceInputSchema.parse(await c.req.json());
+      return c.json(await options.voice!.create(c.get("owner"), body), 201);
+    });
+    app.post("/v1/voice/:id/cancel", async (c) =>
+      c.json(await options.voice!.cancel(c.get("owner"), c.req.param("id"))),
+    );
+  }
+  if (options.sync) {
+    app.get("/v1/sync", async (c) =>
+      c.json(await options.sync!.list(c.get("owner"))),
+    );
+    app.post("/v1/sync", async (c) => {
+      const body = syncInputSchema.parse(await c.req.json());
+      return c.json(await options.sync!.create(c.get("owner"), body), 201);
+    });
+    app.post("/v1/sync/:id/pause", async (c) =>
+      c.json(await options.sync!.pause(c.get("owner"), c.req.param("id"))),
+    );
+    app.post("/v1/sync/:id/resume", async (c) =>
+      c.json(await options.sync!.resume(c.get("owner"), c.req.param("id"))),
+    );
+  }
   app.get("/v1/connections", async (c) =>
     c.json(await engine.connections(c.get("owner"))),
   );
@@ -85,6 +211,37 @@ export function createApp(engine: Engine, options: ServerOptions) {
       201,
     );
   });
+  app.post("/v1/connections/:id/reconnect", async (c) => {
+    const body = reconnectInputSchema.parse(await c.req.json());
+    return c.json(
+      await engine.reconnect(
+        c.get("owner"),
+        c.req.param("id"),
+        body.credentials,
+        body.resources,
+      ),
+    );
+  });
+  app.patch("/v1/connections/:id/limits", async (c) =>
+    c.json(
+      await engine.limits(
+        c.get("owner"),
+        c.req.param("id"),
+        limitsSchema.parse(await c.req.json()),
+      ),
+    ),
+  );
+  app.patch("/v1/connections/:id/resources", async (c) => {
+    const body = resourcesInputSchema.parse(await c.req.json());
+    return c.json(
+      await engine.resources(c.get("owner"), c.req.param("id"), body.resources),
+    );
+  });
+  app.get("/v1/doctor", async (c) =>
+    c.json(
+      await engine.doctor(c.get("owner"), c.req.query("probe") === "true"),
+    ),
+  );
   app.delete("/v1/connections/:id", async (c) => {
     await engine.disconnect(c.get("owner"), c.req.param("id"));
     return c.json({ disconnected: true });
@@ -92,6 +249,15 @@ export function createApp(engine: Engine, options: ServerOptions) {
   app.get("/v1/connections/:id/capabilities", async (c) =>
     c.json(await engine.capabilities(c.get("owner"), c.req.param("id"))),
   );
+  app.get("/v1/artifacts/:id", async (c) => {
+    const artifact = await engine.artifact(c.get("owner"), c.req.param("id"));
+    c.header("Content-Type", artifact.contentType);
+    c.header(
+      "Content-Disposition",
+      'attachment; filename="' + artifact.filename + '"',
+    );
+    return c.body(new Uint8Array(artifact.bytes));
+  });
   app.get("/v1/actions", async (c) =>
     c.json(await engine.actions(c.get("owner"))),
   );
@@ -108,9 +274,7 @@ export function createApp(engine: Engine, options: ServerOptions) {
     c.json(await engine.preview(c.get("owner"), c.req.param("id"))),
   );
   app.post("/v1/actions/:id/approve", async (c) => {
-    const body = await c.req.json();
-    if (typeof body.digest !== "string")
-      return c.json({ error: "digest_required" }, 400);
+    const body = approvalInputSchema.parse(await c.req.json());
     return c.json(
       await engine.approve(c.get("owner"), c.req.param("id"), body.digest),
     );
@@ -143,6 +307,14 @@ export function createApp(engine: Engine, options: ServerOptions) {
   app.get("/v1/events", async (c) =>
     c.json(await engine.events(c.get("owner"))),
   );
+  if (options.webhookOrigin)
+    installWebhooks(
+      app,
+      new WebhookIngress(engine, {
+        origin: options.webhookOrigin,
+        sync: options.sync,
+      }),
+    );
   app.onError((error, c) => {
     if (error instanceof ConnectorError)
       return c.json(

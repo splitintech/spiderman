@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-sdk",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman sdk module: personal account connectors and agent bridge",
@@ -28,6 +28,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@splitin/spiderman-contracts": "0.1.0-alpha.1"
+    "@splitin/spiderman-contracts": "0.1.0-alpha.2"
   }
 }

@@ -2,7 +2,12 @@ import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import type { Hono } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Engine } from "@splitin/spiderman-core";
-import { ConnectorError } from "@splitin/spiderman-contracts";
+import {
+  ConnectorError,
+  oauthScopes as scopes,
+  selectOAuthScopes,
+  oauthInputSchema,
+} from "@splitin/spiderman-contracts";
 export interface OAuthApplication {
   clientId: string;
   clientSecret: string;
@@ -18,36 +23,11 @@ interface Pending {
   owner: string;
   provider: string;
   resources: string[];
+  scopes: string[];
+  connectionId?: string;
   expiresAt: number;
   secretRef: string;
 }
-const scopes: Record<string, string[]> = {
-  gmail: ["openid", "email", "https://www.googleapis.com/auth/gmail.modify"],
-  "google-drive": [
-    "openid",
-    "email",
-    "https://www.googleapis.com/auth/drive.file",
-  ],
-  "google-sheets": [
-    "openid",
-    "email",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/spreadsheets",
-  ],
-  "google-calendar": [
-    "openid",
-    "email",
-    "https://www.googleapis.com/auth/calendar",
-  ],
-  outlook: [
-    "openid",
-    "profile",
-    "offline_access",
-    "User.Read",
-    "Mail.ReadWrite",
-    "Mail.Send",
-  ],
-};
 const sha = (s: string) => createHash("sha256").update(s).digest("base64url");
 export function installOAuth(
   app: Hono<{ Variables: { owner: string; actorKind: "human" | "agent" } }>,
@@ -74,14 +54,21 @@ export function installOAuth(
         provider === "outlook" ? options.microsoft : options.google;
     if (!configuration || !scopes[provider])
       return c.json({ error: "oauth_provider_not_configured" }, 409);
-    const body = await c.req.json().catch(() => ({}));
-    const resources = body.resources ?? [];
-    if (
-      !Array.isArray(resources) ||
-      !resources.every((r: unknown) => typeof r === "string") ||
-      resources.length > 1000
-    )
-      return c.json({ error: "invalid_resources" }, 400);
+    const body = oauthInputSchema.parse(await c.req.json()),
+      prior = body.connectionId
+        ? await engine.connection(c.get("owner"), body.connectionId)
+        : undefined;
+    if (prior && prior.provider !== provider)
+      throw new ConnectorError("oauth_provider_mismatch");
+    let selected: string[];
+    try {
+      selected = selectOAuthScopes(provider, body.scopes);
+    } catch {
+      throw new ConnectorError("oauth_scope_denied");
+    }
+    const resources = body.resources.length
+      ? body.resources
+      : (prior?.resources ?? []);
     const owner = c.get("owner"),
       state = randomBytes(32).toString("base64url"),
       verifier = randomBytes(32).toString("base64url"),
@@ -97,6 +84,8 @@ export function installOAuth(
       owner,
       provider,
       resources,
+      scopes: selected,
+      connectionId: body.connectionId,
       expiresAt: Date.now() + 600000,
       secretRef,
     };
@@ -131,8 +120,12 @@ export function installOAuth(
       expected = Buffer.from(secret.nonce);
     if (actual.length !== expected.length || !timingSafeEqual(actual, expected))
       return c.json({ error: "oauth_browser_binding_required" }, 400);
-    const selected = [...scopes[row.provider]!];
-    if (row.provider === "google-drive" && row.resources.includes("*")) {
+    const selected = [...row.scopes];
+    if (
+      row.provider === "google-drive" &&
+      row.resources.includes("*") &&
+      selected.includes("https://www.googleapis.com/auth/drive.file")
+    ) {
       selected.splice(
         selected.indexOf("https://www.googleapis.com/auth/drive.file"),
         1,
@@ -152,7 +145,13 @@ export function installOAuth(
       state,
       code_challenge: sha(secret.verifier),
       code_challenge_method: "S256",
-      ...(microsoft ? {} : { access_type: "offline", prompt: "consent" }),
+      ...(microsoft
+        ? {}
+        : {
+            access_type: "offline",
+            prompt: "consent",
+            include_granted_scopes: "true",
+          }),
     }).toString();
     return c.redirect(url.toString());
   });
@@ -202,24 +201,47 @@ export function installOAuth(
     });
     if (!response.ok) return c.json({ error: "oauth_exchange_rejected" }, 400);
     const grant: any = await response.json();
+    const priorCredentials = row.connectionId
+      ? await engine.vault.get<Record<string, unknown>>(
+          row.owner,
+          (await engine.connection(row.owner, row.connectionId)).credentialRef,
+        )
+      : undefined;
+    if (
+      !grant.refresh_token &&
+      priorCredentials?.clientId === configuration.clientId
+    )
+      grant.refresh_token = priorCredentials.refreshToken;
     if (
       typeof grant.access_token !== "string" ||
-      typeof grant.refresh_token !== "string"
+      typeof grant.refresh_token !== "string" ||
+      !Number.isFinite(Number(grant.expires_in ?? 3600)) ||
+      Number(grant.expires_in ?? 3600) <= 0
     )
       return c.json({ error: "oauth_refresh_grant_required" }, 400);
-    const connection = await engine.connect(
-      row.owner,
-      row.provider,
-      {
-        accessToken: grant.access_token,
-        refreshToken: grant.refresh_token,
-        expiresAt: Date.now() + Number(grant.expires_in ?? 3600) * 1000,
-        clientId: configuration.clientId,
-        clientSecret: configuration.clientSecret,
-        tokenEndpoint: endpoint,
-      },
-      row.resources,
-    );
+    const credentials = {
+      accessToken: grant.access_token,
+      refreshToken: grant.refresh_token,
+      expiresAt: Date.now() + Number(grant.expires_in ?? 3600) * 1000,
+      clientId: configuration.clientId,
+      clientSecret: configuration.clientSecret,
+      tokenEndpoint: endpoint,
+      grantedScopes:
+        typeof grant.scope === "string" ? grant.scope.split(" ") : row.scopes,
+    };
+    const connection = row.connectionId
+      ? await engine.reconnect(
+          row.owner,
+          row.connectionId,
+          credentials,
+          row.resources,
+        )
+      : await engine.connect(
+          row.owner,
+          row.provider,
+          credentials,
+          row.resources,
+        );
     await engine.vault.delete(row.owner, row.secretRef);
     return c.html(
       '<!doctype html><html lang="en"><meta charset="utf-8"><title>Account connected</title><h1>Account connected</h1><p>Return to Spiderman and refresh your connections.</p><p>Connection ' +

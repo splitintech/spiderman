@@ -2,6 +2,12 @@
   "files": [],
   "references": [
     {
+      "path": "packages/oauth-loopback"
+    },
+    {
+      "path": "packages/mail-mime"
+    },
+    {
       "path": "packages/contracts"
     },
     {

@@ -4,6 +4,18 @@ import type {
   Connection,
 } from "@splitin/spiderman-contracts";
 export class SpidermanClient {
+  subscriptions() {
+    return this.request("/v1/subscriptions");
+  }
+  createSubscription(input: {
+    connectionId: string;
+    source: string;
+    resource: string;
+    routeId: string;
+    topicName?: string;
+  }) {
+    return this.request("/v1/subscriptions", "POST", input);
+  }
   constructor(
     readonly baseUrl: string,
     readonly token: () => string,
@@ -102,6 +114,79 @@ export class SpidermanClient {
       "/v1/oauth/" + encodeURIComponent(provider) + "/start",
       "POST",
       { resources },
+    );
+  }
+  reconnect(
+    id: string,
+    credentials: Record<string, unknown>,
+    resources?: string[],
+  ) {
+    return this.request<Connection>(
+      "/v1/connections/" + encodeURIComponent(id) + "/reconnect",
+      "POST",
+      { credentials, ...(resources === undefined ? {} : { resources }) },
+    );
+  }
+  resources(id: string, resources: string[]) {
+    return this.request<Connection>(
+      "/v1/connections/" + encodeURIComponent(id) + "/resources",
+      "PATCH",
+      { resources },
+    );
+  }
+  doctor(probe = false) {
+    return this.request("/v1/doctor" + (probe ? "?probe=true" : ""));
+  }
+  syncs() {
+    return this.request("/v1/sync");
+  }
+  sync(input: {
+    connectionId: string;
+    source: string;
+    resource: string;
+    intervalSeconds?: number;
+    maxBootstrapPages?: number;
+  }) {
+    return this.request("/v1/sync", "POST", input);
+  }
+  pauseSync(id: string) {
+    return this.request(
+      "/v1/sync/" + encodeURIComponent(id) + "/pause",
+      "POST",
+      {},
+    );
+  }
+  resumeSync(id: string) {
+    return this.request(
+      "/v1/sync/" + encodeURIComponent(id) + "/resume",
+      "POST",
+      {},
+    );
+  }
+  voices() {
+    return this.request("/v1/voice");
+  }
+  voice(id: string) {
+    return this.request("/v1/voice/" + encodeURIComponent(id));
+  }
+  enrollVoice(input: {
+    connectionId: string;
+    idempotencyKey: string;
+    reference: Record<string, unknown>;
+    script?: string;
+    origin?: {
+      connectionId: string;
+      recipient: string;
+      transport?: "rcs" | "sms" | "mms";
+    };
+  }) {
+    return this.request("/v1/voice", "POST", input);
+  }
+  cancelVoice(id: string) {
+    return this.request(
+      "/v1/voice/" + encodeURIComponent(id) + "/cancel",
+      "POST",
+      {},
     );
   }
   events() {
