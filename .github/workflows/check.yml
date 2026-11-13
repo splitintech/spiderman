@@ -3,6 +3,14 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t spiderman:ci .
+      - run: docker run --rm spiderman:ci help
+      - name: Verify non-root local storage initialization
+        run: docker run --rm -e SPIDERMAN_MASTER_KEY=0101010101010101010101010101010101010101010101010101010101010101 -e SPIDERMAN_TOKEN=synthetic-container-api-token-at-least-32-characters spiderman:ci init
   contracts-and-integration:
     runs-on: ubuntu-latest
     services:
