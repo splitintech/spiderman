@@ -148,7 +148,7 @@ async function main() {
   if (command === "help" || command === "--help") {
     output({
       name: "spiderman",
-      version: "0.1.0-alpha.2",
+      version: "0.1.0-alpha.3",
       commands: [
         "init",
         "connect",
@@ -340,7 +340,9 @@ async function main() {
     case "reconnect": {
       if (!id) throw Error("connection_id_required");
       const b = await stdin();
-      output(await sdk.reconnect(id, b.credentials, b.resources));
+      output(
+        await sdk.reconnect(id, b.credentials, b.resources, b.expectedRevision),
+      );
       break;
     }
     case "resources":

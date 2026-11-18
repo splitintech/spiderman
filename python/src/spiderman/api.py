@@ -2,6 +2,19 @@
 from urllib.parse import quote
 
 class GeneratedAPI:
+    def oauth_authorize(self, state):
+        body = {"state": state}
+        return self.request("/v1/oauth/authorize", "POST", body)
+
+    def oauth_complete(self, state, code=None, error=None):
+        body = {"state": state}
+        if code is not None: body["code"] = code
+        if error is not None: body["error"] = error
+        return self.request("/v1/oauth/complete", "POST", body)
+
+    def cancel_oauth(self, state):
+        return self.request("/v1/oauth/" + quote(str(state), safe="") + "", "DELETE", None)
+
     def subscriptions(self):
         return self.request("/v1/subscriptions", "GET", None)
 
@@ -27,9 +40,10 @@ class GeneratedAPI:
         if resources is not None: body["resources"] = resources
         return self.request("/v1/connections", "POST", body)
 
-    def reconnect(self, connection_id, credentials, resources=None):
+    def reconnect(self, connection_id, credentials, resources=None, expected_revision=None):
         body = {"credentials": credentials}
         if resources is not None: body["resources"] = resources
+        if expected_revision is not None: body["expectedRevision"] = expected_revision
         return self.request("/v1/connections/" + quote(str(connection_id), safe="") + "/reconnect", "POST", body)
 
     def limits(self, connection_id, max_actions_per_minute=None, max_queued=None, max_call_seconds_per_day=None, max_spend_micros_per_day=None, unit_cost_micros=None):

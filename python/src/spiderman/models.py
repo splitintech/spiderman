@@ -245,6 +245,7 @@ class ResourcesInput(TypedDict):
 
 class _ReconnectInputOptional(TypedDict, total=False):
     resources: list[str]
+    expectedRevision: int
 
 class ReconnectInput(_ReconnectInputOptional):
     credentials: dict[str, Any]
@@ -277,3 +278,13 @@ class _OAuthInputOptional(TypedDict, total=False):
 
 class OAuthInput(_OAuthInputOptional):
     pass
+
+class OAuthAuthorizeInput(TypedDict):
+    state: str
+
+class _OAuthCompleteInputOptional(TypedDict, total=False):
+    code: str
+    error: str
+
+class OAuthCompleteInput(_OAuthCompleteInputOptional):
+    state: str

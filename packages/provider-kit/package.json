@@ -1,6 +1,6 @@
 {
   "name": "@splitin/spiderman-provider-kit",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "type": "module",
   "license": "MIT",
   "description": "Spiderman provider-kit adapter",
@@ -28,9 +28,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@splitin/spiderman-core": "0.1.0-alpha.2",
-    "@splitin/spiderman-contracts": "0.1.0-alpha.2",
-    "@splitin/spiderman-mail-mime": "0.1.0-alpha.2",
-    "@splitin/spiderman-oauth-loopback": "0.1.0-alpha.2"
+    "@splitin/spiderman-core": "0.1.0-alpha.3",
+    "@splitin/spiderman-contracts": "0.1.0-alpha.3",
+    "@splitin/spiderman-mail-mime": "0.1.0-alpha.3",
+    "@splitin/spiderman-oauth-loopback": "0.1.0-alpha.3"
   }
 }

@@ -120,11 +120,16 @@ export class SpidermanClient {
     id: string,
     credentials: Record<string, unknown>,
     resources?: string[],
+    expectedRevision?: number,
   ) {
     return this.request<Connection>(
       "/v1/connections/" + encodeURIComponent(id) + "/reconnect",
       "POST",
-      { credentials, ...(resources === undefined ? {} : { resources }) },
+      {
+        credentials,
+        ...(resources === undefined ? {} : { resources }),
+        ...(expectedRevision === undefined ? {} : { expectedRevision }),
+      },
     );
   }
   resources(id: string, resources: string[]) {

@@ -219,6 +219,7 @@ export function createApp(engine: Engine, options: ServerOptions) {
         c.req.param("id"),
         body.credentials,
         body.resources,
+        body.expectedRevision,
       ),
     );
   });

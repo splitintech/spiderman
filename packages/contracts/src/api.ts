@@ -12,6 +12,19 @@ export interface ApiOperation {
 }
 export const apiOperations: ApiOperation[] = [
   {
+    name: "oauth_authorize",
+    method: "POST",
+    path: "/v1/oauth/authorize",
+    request: "OAuthAuthorizeInput",
+  },
+  {
+    name: "oauth_complete",
+    method: "POST",
+    path: "/v1/oauth/complete",
+    request: "OAuthCompleteInput",
+  },
+  { name: "cancel_oauth", method: "DELETE", path: "/v1/oauth/{state}" },
+  {
     name: "subscriptions",
     method: "GET",
     path: "/v1/subscriptions",

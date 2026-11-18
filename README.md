@@ -2,7 +2,7 @@
 
 Personal account connectors for agents, with durable actions and human approval.
 
-**Development preview source: `0.1.0-alpha.2`.** Automated tests cover local execution and simulated provider responses. Real accounts, physical devices, hosted capacity and provider approvals are unqualified. Do not treat a listed adapter as a production-ready connection. See [adapter status](docs/adapters.md).
+**Unpublished development source: `0.1.0-alpha.3`.** Automated tests cover local execution and simulated provider responses. Real accounts, physical devices, hosted capacity and provider approvals are unqualified. Do not treat a listed adapter as a production-ready connection. See [adapter status](docs/adapters.md).
 
 Spiderman provides a TypeScript execution engine, SQLite and PostgreSQL stores, encrypted credentials, an HTTP service, TypeScript/Python clients, CLI and MCP. Agent and human requests share the same owner and policy checks. A connection never grants another organization member access.
 

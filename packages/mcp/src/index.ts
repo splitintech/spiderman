@@ -16,7 +16,7 @@ export interface McpOptions {
 }
 /** Owner comes from trusted host authentication, never a tool argument. */
 export function createMcp(engine: Engine, owner: string) {
-  const server = new McpServer({ name: "spiderman", version: "0.1.0-alpha.2" });
+  const server = new McpServer({ name: "spiderman", version: "0.1.0-alpha.3" });
   const response = (data: unknown) => ({
     content: [{ type: "text" as const, text: JSON.stringify(data) }],
   });

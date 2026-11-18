@@ -342,6 +342,7 @@ export const reconnectInputSchema = z
   .object({
     credentials: z.record(z.string(), z.unknown()),
     resources: resourcesInputSchema.shape.resources.optional(),
+    expectedRevision: z.number().int().positive().optional(),
   })
   .strict();
 export const syncInputSchema = z
@@ -379,6 +380,20 @@ export const oauthInputSchema = z
     connectionId: z.string().uuid().optional(),
   })
   .strict();
+export const oauthAuthorizeInputSchema = z
+  .object({ state: z.string().regex(/^[\w-]{43}$/) })
+  .strict();
+export const oauthCompleteInputSchema = oauthAuthorizeInputSchema
+  .extend({
+    code: z.string().min(1).max(10000).optional(),
+    error: z.string().min(1).max(256).optional(),
+  })
+  .strict()
+  .refine(
+    (value) => !!value.code !== !!value.error,
+    "oauth_code_or_error_required",
+  );
+export type OAuthCompleteInput = z.infer<typeof oauthCompleteInputSchema>;
 export const reconcileInputSchema = z
   .object({ resource: z.string().min(1).max(1000).optional() })
   .strict();
@@ -429,6 +444,10 @@ export const jsonSchemas = () => ({
   VoiceInput: z.toJSONSchema(voiceInputSchema, { io: "input" }),
   ApprovalInput: z.toJSONSchema(approvalInputSchema, { io: "input" }),
   OAuthInput: z.toJSONSchema(oauthInputSchema, { io: "input" }),
+  OAuthAuthorizeInput: z.toJSONSchema(oauthAuthorizeInputSchema, {
+    io: "input",
+  }),
+  OAuthCompleteInput: z.toJSONSchema(oauthCompleteInputSchema, { io: "input" }),
 });
 
 export * from "./api.js";

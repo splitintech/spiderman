@@ -94,7 +94,7 @@ await save(
   JSON.stringify(
     {
       openapi: "3.1.0",
-      info: { title: "Spiderman API", version: "0.1.0-alpha.2" },
+      info: { title: "Spiderman API", version: "0.1.0-alpha.3" },
       paths,
       components: {
         securitySchemes: { bearer: { type: "http", scheme: "bearer" } },

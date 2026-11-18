@@ -127,6 +127,7 @@ export class Engine {
     provider: string,
     credentials: Record<string, unknown>,
     resources: string[] = [],
+    guard?: (tx: Transaction) => Promise<void>,
   ): Promise<Connection> {
     must(owner.length > 0, "owner_required");
     const identity = await this.provider(provider).verify(credentials);
@@ -151,6 +152,7 @@ export class Engine {
     };
     try {
       await this.store.transaction(async (tx) => {
+        await guard?.(tx);
         for (const prior of await tx.list<Connection>("connection"))
           if (
             prior.provider === provider &&
@@ -214,9 +216,15 @@ export class Engine {
     id: string,
     credentials: Record<string, unknown>,
     resources?: string[],
+    expectedRevision?: number,
+    guard?: (tx: Transaction) => Promise<void>,
   ) {
-    const prior = await this.connection(owner, id),
-      identity = await this.provider(prior.provider).verify(credentials);
+    const prior = await this.connection(owner, id);
+    must(
+      expectedRevision === undefined || prior.revision === expectedRevision,
+      "connection_changed",
+    );
+    const identity = await this.provider(prior.provider).verify(credentials);
     must(identity.accountId === prior.accountId, "account_mismatch");
     if (resources !== undefined)
       must(
@@ -231,8 +239,21 @@ export class Engine {
     );
     try {
       const updated = await this.store.transaction(async (tx) => {
+        await guard?.(tx);
         const c = owned(await tx.get<Connection>("connection", id), owner);
         must(c.revision === prior.revision, "connection_changed");
+        for (const other of await tx.list<Connection>("connection"))
+          if (
+            other.id !== id &&
+            other.provider === c.provider &&
+            other.accountId === identity.accountId &&
+            other.status === "ready"
+          )
+            throw new ConnectorError(
+              other.owner === owner
+                ? "account_already_connected"
+                : "account_already_bound",
+            );
         must(
           !(await tx.list<ActionReceipt>("action", owner)).some(
             (a) => a.connectionId === id && a.state === "running",
@@ -963,6 +984,11 @@ export class Engine {
       for (const event of await tx.list<EventEnvelope>("event"))
         if (event.createdAt < this.now() - 90 * 86400000)
           await tx.remove("event", event.id);
+      for (const pending of await tx.list<{ id: string; expiresAt: number }>(
+        "oauth",
+      ))
+        if (pending.expiresAt <= this.now())
+          await tx.remove("oauth", pending.id);
       return count;
     });
     return { expiredContent: expired, removedReceipts: removed };
