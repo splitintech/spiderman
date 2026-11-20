@@ -23,6 +23,7 @@ export function refreshing(provider: Provider, http: Http = fetch): Provider {
           throw new ConnectorError("token_endpoint_denied");
         if (!context.updateCredentials)
           throw new ConnectorError("credential_rotation_unavailable");
+        await context.beforeDispatch?.();
         let response;
         try {
           response = await http(endpoint, {
@@ -33,7 +34,9 @@ export function refreshing(provider: Provider, http: Http = fetch): Provider {
             body: new URLSearchParams({
               grant_type: "refresh_token",
               client_id: required(c, "clientId"),
-              client_secret: required(c, "clientSecret"),
+              ...(typeof c.clientSecret === "string"
+                ? { client_secret: c.clientSecret }
+                : {}),
               refresh_token: required(c, "refreshToken"),
             }),
           });
@@ -49,6 +52,10 @@ export function refreshing(provider: Provider, http: Http = fetch): Provider {
           accessToken: token.access_token,
           refreshToken: token.refresh_token ?? c.refreshToken,
           expiresAt: Date.now() + Number(token.expires_in ?? 3600) * 1000,
+          grantedScopes:
+            typeof token.scope === "string"
+              ? token.scope.split(" ")
+              : c.grantedScopes,
         };
         const identity = await provider.verify(next);
         if (identity.accountId !== context.connection.accountId)
@@ -63,7 +70,7 @@ export function refreshing(provider: Provider, http: Http = fetch): Provider {
           )
         )
           throw new ConnectorError("refreshed_scope_missing");
-        await context.updateCredentials(next);
+        await context.updateCredentials(next, identity.scopes);
         context = { ...context, credentials: next };
       }
       await context.beforeDispatch?.();

@@ -1,4 +1,5 @@
 import { ConnectorError } from "@splitin/spiderman-contracts";
+import { authorizeExternalRequest } from "@splitin/spiderman-core";
 export type Http = typeof fetch;
 export async function json(
   http: Http,
@@ -9,6 +10,7 @@ export async function json(
   signal = AbortSignal.timeout(30000),
   headers: Record<string, string> = {},
 ): Promise<any> {
+  await authorizeExternalRequest();
   let response: Response;
   try {
     response = await http(url, {
@@ -39,13 +41,14 @@ export async function json(
     );
   }
   if (response.status === 204) return {};
-  if (response.status === 202)
-    return { accepted: true, delivery: "unverified" };
   if (Number(response.headers.get("content-length") ?? 0) > 10_000_000)
     throw new ConnectorError("provider_response_too_large", method !== "GET");
   try {
     const reader = response.body?.getReader();
-    if (!reader) return {};
+    if (!reader)
+      return response.status === 202
+        ? { accepted: true, delivery: "unverified" }
+        : {};
     let size = 0;
     const chunks: Uint8Array[] = [];
     try {
@@ -65,7 +68,20 @@ export async function json(
     } finally {
       reader.releaseLock();
     }
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    const bodyText = Buffer.concat(chunks).toString("utf8");
+    if (!bodyText.trim() && response.status === 202)
+      return { accepted: true, delivery: "unverified" };
+    const parsed = JSON.parse(bodyText),
+      etag = response.headers.get("etag");
+    if (
+      etag &&
+      parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      parsed.etag === undefined
+    )
+      parsed.etag = etag;
+    return parsed;
   } catch (error) {
     if (error instanceof ConnectorError) throw error;
     throw new ConnectorError("provider_response_invalid", method !== "GET");

@@ -5,13 +5,21 @@
     "outDir": "dist",
     "composite": true
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "path": "../core"
     },
     {
       "path": "../contracts"
+    },
+    {
+      "path": "../mail-mime"
+    },
+    {
+      "path": "../oauth-loopback"
     }
   ]
 }

@@ -3,11 +3,12 @@ import { ConnectorError, type Operation } from "@splitin/spiderman-contracts";
 import type { Provider, ProviderContext } from "@splitin/spiderman-core";
 import {
   json,
+  binary,
   required,
   localEndpoint,
   type Http,
 } from "@splitin/spiderman-provider-kit";
-const guid = z.string().regex(/^iMessage;-;.{1,250}$/);
+const guid = z.string().regex(/^iMessage;[-+];.{1,250}$/);
 export class IMessageProvider implements Provider {
   readonly manifest = {
     provider: "imessage",
@@ -15,6 +16,29 @@ export class IMessageProvider implements Provider {
     transport: "imessage",
     qualification: "automated_only" as const,
     operations: [
+      {
+        name: "message.attachment",
+        risk: "write",
+        scopes: ["messages"],
+        recipientKeys: ["recipient"],
+        stagingKeys: ["contentBase64"],
+        input: z
+          .object({
+            recipient: guid,
+            contentBase64: z.string().min(1).max(8_000_000),
+            contentType: z.enum([
+              "audio/wav",
+              "audio/mpeg",
+              "audio/mp4",
+              "audio/ogg",
+              "image/jpeg",
+              "image/png",
+              "application/pdf",
+            ]),
+            filename: z.string().regex(/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,119}$/),
+          })
+          .strict(),
+      },
       {
         name: "message.send",
         risk: "write",
@@ -69,6 +93,35 @@ export class IMessageProvider implements Provider {
     const spec = this.manifest.operations.find((o) => o.name === name);
     if (!spec) throw new ConnectorError("operation_unavailable");
     const a = spec.input.parse(raw) as any;
+    if (name === "message.attachment") {
+      const bytes = Buffer.from(a.contentBase64, "base64");
+      if (!bytes.length || bytes.length > 6_000_000)
+        throw new ConnectorError("attachment_size_invalid");
+      const form = new FormData();
+      form.append("chatGuid", a.recipient);
+      form.append("tempGuid", ctx.actionId);
+      form.append("name", a.filename);
+      form.append("method", "apple-script");
+      form.append(
+        "attachment",
+        new Blob([bytes], { type: a.contentType }),
+        a.filename,
+      );
+      const response = await binary(
+        this.http,
+        this.url(ctx.credentials, "/api/v1/message/attachment"),
+        { method: "POST", body: form, signal: ctx.signal, maxBytes: 1_000_000 },
+      );
+      let data: any;
+      try {
+        data = JSON.parse(response.bytes.toString("utf8"));
+      } catch {
+        throw new ConnectorError("send_receipt_invalid", true);
+      }
+      if (!data.data?.guid)
+        throw new ConnectorError("send_receipt_missing", true);
+      return { providerId: data.data.guid, data };
+    }
     const body =
       name === "message.send"
         ? {

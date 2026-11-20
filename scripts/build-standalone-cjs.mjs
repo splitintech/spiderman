@@ -1,0 +1,2 @@
+import {execFileSync} from 'node:child_process';import {renameSync,rmSync} from 'node:fs';
+for(const name of ['mail-mime','oauth-loopback']){execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','packages/'+name+'/tsconfig.cjs.json'],{stdio:'inherit'});renameSync('packages/'+name+'/dist-cjs/index.js','packages/'+name+'/dist/index.cjs');rmSync('packages/'+name+'/dist-cjs',{recursive:true,force:true});}

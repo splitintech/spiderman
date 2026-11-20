@@ -155,16 +155,18 @@ test("Graph pagination refuses credential exfiltration through an arbitrary next
   );
   assert.equal(calls, 0);
 });
-test("Graph 202 is recorded as submission, not recipient delivery", async () => {
+test("Graph accepted response without draft identity is uncertain", async () => {
   const p = new OutlookProvider(
     async () => new Response(null, { status: 202 }),
   );
-  const result = await p.execute(
-    "mail.send",
-    { recipients: ["bob@example.test"], subject: "Fixture", body: "Fixture" },
-    context({ accessToken: "fixture" }),
+  await assert.rejects(
+    p.execute(
+      "mail.send",
+      { recipients: ["bob@example.test"], subject: "Fixture", body: "Fixture" },
+      context({ accessToken: "fixture" }),
+    ),
+    (error) => error.code === "graph_draft_receipt_missing" && error.uncertain,
   );
-  assert.deepEqual(result.data, { accepted: true, delivery: "unverified" });
 });
 test("transport loss during a mutation is uncertain, not successful or safely retryable", async () => {
   const p = new GoogleProvider("google-calendar", async () => {
@@ -320,4 +322,42 @@ test("rotating OAuth refresh token is saved before executing provider work", asy
     },
   );
   assert.deepEqual(order, ["save", "execute"]);
+});
+
+test("WhatsApp Business media and replies carry the reviewed recipient and uploaded media ID", async () => {
+  const sent = [];
+  const provider = new WhatsAppBusinessProvider("v27.0", async (_url, init) => {
+    sent.push(JSON.parse(init.body));
+    return Response.json({ messages: [{ id: "accepted-fixture" }] });
+  });
+  const ctx = context({ accessToken: "fixture", phoneNumberId: "12345" });
+  const recipient = "+12125550123";
+  const receipt = await provider.execute("message.media", { recipient, mediaType: "document", mediaId: "456",
+    filename: "schedule.pdf", caption: "Schedule", replyTo: "original" }, ctx);
+  assert.equal(receipt.data.delivery, "submitted");
+  assert.deepEqual(sent[0], { messaging_product: "whatsapp", to: recipient, type: "document",
+    document: { id: "456", filename: "schedule.pdf", caption: "Schedule" }, context: { message_id: "original" } });
+  await assert.rejects(provider.execute("message.media", {recipient, mediaType:"audio", mediaId:"456", caption:"invalid"}, ctx));
+  await assert.rejects(provider.execute("message.media", {recipient, mediaType:"image", mediaId:"https://example.invalid"}, ctx));
+  assert.equal(sent.length, 1);
+});
+
+test("Gmail permits a reviewed sender alias only after current account verification", async () => {
+  let posted = 0;
+  const p = new GoogleProvider("gmail", async (url, init) => {
+    if (String(url).includes("/settings/sendAs")) return Response.json({sendAs:[
+      {sendAsEmail:"team@example.test",verificationStatus:"accepted"},
+      {sendAsEmail:"pending@example.test",verificationStatus:"pending"}]});
+    posted++;
+    const raw = Buffer.from(JSON.parse(init.body).raw, "base64url").toString();
+    assert.match(raw, /^From: team@example.test\r?$/m);
+    return Response.json({id:"fixture-id"});
+  });
+  const ctx = context({accessToken:"fixture"});
+  const message = {recipients:["bob@example.test"],subject:"Visit",text:"Confirmed"};
+  assert.deepEqual((await p.execute("mail.senderAliases", {}, ctx)).data.aliases, ["team@example.test"]);
+  await assert.rejects(p.execute("mail.send",{...message,senderAlias:"pending@example.test"},ctx),/sender_alias_unverified/);
+  assert.equal(posted,0);
+  await p.execute("mail.send",{...message,senderAlias:"team@example.test"},ctx);
+  assert.equal(posted,1);
 });

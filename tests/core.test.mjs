@@ -278,6 +278,12 @@ test("HTTP + SDK use the same owner and approval path", () =>
 test("1000 queued reads survive durable submission and execute once", () =>
   fixture(async ({ engine, calls }) => {
     const c = await connect(engine);
+    await engine.limits("alice", c.id, {
+      maxActionsPerMinute: 1000,
+      maxQueued: 1000,
+      maxCallSecondsPerDay: 0,
+      unitCostMicros: {},
+    });
     for (let i = 0; i < 1000; i++)
       await engine.submit("alice", {
         connectionId: c.id,

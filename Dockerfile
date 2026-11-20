@@ -2,6 +2,7 @@ FROM node:24.13.1-bookworm-slim AS build
 WORKDIR /app
 COPY package*.json tsconfig*.json ./
 COPY packages ./packages
+COPY scripts/build-standalone-cjs.mjs ./scripts/build-standalone-cjs.mjs
 RUN npm ci
 RUN npm run build && npm prune --omit=dev
 

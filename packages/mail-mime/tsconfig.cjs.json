@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist-cjs",
+    "composite": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "declaration": false,
+    "target": "ES2022"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "references": []
+}

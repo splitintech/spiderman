@@ -7,7 +7,7 @@ Before a development release:
 1. Use a clean locked installation on Node 24.
 2. Build and run unit/provider-wire, interface E2E, native PostgreSQL and Chromium/WebKit tests.
 3. Regenerate contracts; inspect package contents, dependency notices and secret checks.
-4. Pack all npm modules together, build a Python wheel and verify clean installation.
+4. Pack all npm modules, build a licensed Python wheel and verify each module in an independent clean installation. Test CommonJS/ESM entry points for shared modules and authorization across duplicated installed packages.
 5. Verify npm `@splitin` and Python publication authority before publishing. Use npm tag `alpha`, never `latest`.
 6. Record source commit, package checksums, test logs, registry versions and container digest independently.
 
@@ -17,4 +17,4 @@ Live acceptance uses dedicated authorized accounts/devices. Demonstrate connect/
 
 For upgrade/rollback, stop the worker, drain or inspect in-flight commands, back up the database and preserve its encryption key separately. Unknown outcomes must be reconciled before any resend. The records schema is version 1; this alpha has only the initial additive table/index migration. Restore matching source/packages/schema/key together. Do not switch between SQLite and PostgreSQL by copying record files or enabling a second dispatch owner.
 
-The CLI's `doctor` currently reports configuration and runtime basics. It does not yet certify provider webhooks, devices or production readiness.
+The CLI's `doctor` checks owned credentials and stored state; `--probe` verifies provider account/scopes. Readiness can additionally require a worker heartbeat. These checks do not certify public webhook delivery, device compatibility or production readiness.

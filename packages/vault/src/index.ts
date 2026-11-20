@@ -44,6 +44,33 @@ export class EncryptedVault implements Vault {
     await this.store.transaction((tx) => tx.put("secret", id, owner, row));
     return id;
   }
+  async replace(
+    owner: string,
+    ref: string,
+    value: unknown,
+    expiresAt?: number,
+  ) {
+    await this.store.transaction(async (tx) => {
+      const prior = await tx.get<SecretRow>("secret", ref);
+      if (!prior || prior.owner !== owner)
+        throw new Error("secret_unavailable");
+      const iv = randomBytes(12),
+        cipher = createCipheriv("aes-256-gcm", this.key, iv);
+      cipher.setAAD(Buffer.from(owner + "\0" + ref));
+      const ciphertext = Buffer.concat([
+        cipher.update(JSON.stringify(value), "utf8"),
+        cipher.final(),
+      ]);
+      await tx.put("secret", ref, owner, {
+        id: ref,
+        owner,
+        iv: iv.toString("base64"),
+        tag: cipher.getAuthTag().toString("base64"),
+        ciphertext: ciphertext.toString("base64"),
+        expiresAt,
+      });
+    });
+  }
   async get<T>(owner: string, ref: string): Promise<T> {
     const row = await this.store.transaction((tx) =>
       tx.get<SecretRow>("secret", ref),
