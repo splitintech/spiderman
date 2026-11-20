@@ -323,3 +323,21 @@ test("rotating OAuth refresh token is saved before executing provider work", asy
   );
   assert.deepEqual(order, ["save", "execute"]);
 });
+
+test("WhatsApp Business media and replies carry the reviewed recipient and uploaded media ID", async () => {
+  const sent = [];
+  const provider = new WhatsAppBusinessProvider("v27.0", async (_url, init) => {
+    sent.push(JSON.parse(init.body));
+    return Response.json({ messages: [{ id: "accepted-fixture" }] });
+  });
+  const ctx = context({ accessToken: "fixture", phoneNumberId: "12345" });
+  const recipient = "+12125550123";
+  const receipt = await provider.execute("message.media", { recipient, mediaType: "document", mediaId: "456",
+    filename: "schedule.pdf", caption: "Schedule", replyTo: "original" }, ctx);
+  assert.equal(receipt.data.delivery, "submitted");
+  assert.deepEqual(sent[0], { messaging_product: "whatsapp", to: recipient, type: "document",
+    document: { id: "456", filename: "schedule.pdf", caption: "Schedule" }, context: { message_id: "original" } });
+  await assert.rejects(provider.execute("message.media", {recipient, mediaType:"audio", mediaId:"456", caption:"invalid"}, ctx));
+  await assert.rejects(provider.execute("message.media", {recipient, mediaType:"image", mediaId:"https://example.invalid"}, ctx));
+  assert.equal(sent.length, 1);
+});

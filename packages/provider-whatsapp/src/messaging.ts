@@ -18,6 +18,21 @@ const send: Operation = {
   input: sendSchema,
   recipientKeys: ["recipient"],
 };
+const replyTo = z.string().min(1).max(512).optional();
+const businessText = z.object({ recipient: phone, text, replyTo }).strict();
+const media = z.object({
+  recipient: phone,
+  mediaType: z.enum(["image", "video", "audio", "document"]),
+  mediaId: z.string().regex(/^\d{1,64}$/),
+  caption: z.string().min(1).max(1024).optional(),
+  filename: z.string().min(1).max(240).optional(),
+  replyTo,
+}).strict().superRefine((value, ctx) => {
+  if (value.filename && value.mediaType !== "document")
+    ctx.addIssue({ code: "custom", message: "filename_only_for_documents" });
+  if (value.caption && value.mediaType === "audio")
+    ctx.addIssue({ code: "custom", message: "caption_unavailable_for_audio" });
+});
 export class WhatsAppBusinessProvider implements Provider {
   readonly manifest = {
     provider: "whatsapp-business",
@@ -25,7 +40,8 @@ export class WhatsAppBusinessProvider implements Provider {
     transport: "whatsapp-business",
     qualification: "automated_only" as const,
     operations: [
-      { ...send, input: z.object({ recipient: phone, text }).strict() },
+      { ...send, input: businessText },
+      { ...send, name: "message.media", input: media },
       {
         name: "message.template",
         risk: "write" as const,
@@ -67,20 +83,19 @@ export class WhatsAppBusinessProvider implements Provider {
     if (!spec) throw new ConnectorError("operation_unavailable");
     const a = spec.input.parse(raw) as any;
     // Meta enforces the service window and approved templates; rejected sends stay failures.
-    const body =
-      name === "message.send"
-        ? {
-            messaging_product: "whatsapp",
-            to: a.recipient,
-            type: "text",
-            text: { body: a.text },
-          }
-        : {
-            messaging_product: "whatsapp",
-            to: a.recipient,
-            type: "template",
-            template: { name: a.name, language: { code: a.language } },
-          };
+    const body: Record<string, unknown> = { messaging_product: "whatsapp", to: a.recipient };
+    if (name === "message.send") {
+      body.type = "text";
+      body.text = { body: a.text };
+    } else if (name === "message.media") {
+      body.type = a.mediaType;
+      body[a.mediaType] = { id: a.mediaId, ...(a.caption ? { caption: a.caption } : {}),
+        ...(a.filename ? { filename: a.filename } : {}) };
+    } else {
+      body.type = "template";
+      body.template = { name: a.name, language: { code: a.language } };
+    }
+    if (a.replyTo) body.context = { message_id: a.replyTo };
     const data = await json(
       this.http,
       `https://graph.facebook.com/${this.graphVersion}/${encodeURIComponent(required(ctx.credentials, "phoneNumberId"))}/messages`,
