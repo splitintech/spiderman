@@ -54,6 +54,7 @@ const channel = z
   .strict();
 const mailContent = z
   .object({
+    senderAlias: z.email().optional(),
     recipients: z.array(z.email()).min(1).max(20),
     subject: z.string().max(1000),
     text: z.string().max(100000),
@@ -83,6 +84,7 @@ const mailbox = [
     z.object({ actionId: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
   ),
   op("mail.profile", "read", "mail.read", empty),
+  op("mail.senderAliases", "read", "mail.read", empty),
   op(
     "mail.search",
     "read",
@@ -837,12 +839,28 @@ export class GoogleProvider implements Provider {
         },
       };
     }
+    let sender = ctx.connection.accountId;
+    if (operation === "mail.senderAliases" || a.senderAlias) {
+      const listing = await json(this.http,
+        gmail + "/settings/sendAs?fields=sendAs(sendAsEmail,isPrimary,verificationStatus)",
+        "GET", token, undefined, ctx.signal);
+      if (!Array.isArray(listing.sendAs)) throw new ConnectorError("verified_sender_list_unavailable");
+      const aliases = listing.sendAs.flatMap((entry: Record<string, unknown>) => {
+        const email = z.email().safeParse(entry?.sendAsEmail);
+        if (!email.success || !(entry.verificationStatus === "accepted" ||
+          (entry.isPrimary === true && email.data.toLowerCase() === ctx.connection.accountId.toLowerCase()))) return [];
+        return [email.data.toLowerCase()];
+      });
+      if (operation === "mail.senderAliases") return { data: { aliases } };
+      if (!aliases.includes(a.senderAlias.toLowerCase())) throw new ConnectorError("sender_alias_unverified");
+      sender = a.senderAlias.toLowerCase();
+    }
     const mimeRaw = () => {
       try {
         return Buffer.from(
           buildMime(
             {
-              from: { address: ctx.connection.accountId },
+              from: { address: sender },
               to: a.recipients.map((address: string) => ({ address })),
               subject: a.subject,
               text: a.text,
@@ -1009,7 +1027,7 @@ export class GoogleProvider implements Provider {
         );
         if (
           from.length !== 1 ||
-          from[0] !== ctx.connection.accountId.toLowerCase() ||
+          from[0] !== sender.toLowerCase() ||
           /^Resent-|^Return-Path:|^Sender:/im.test(head)
         )
           throw new ConnectorError("mime_sender_mismatch");

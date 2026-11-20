@@ -341,3 +341,23 @@ test("WhatsApp Business media and replies carry the reviewed recipient and uploa
   await assert.rejects(provider.execute("message.media", {recipient, mediaType:"image", mediaId:"https://example.invalid"}, ctx));
   assert.equal(sent.length, 1);
 });
+
+test("Gmail permits a reviewed sender alias only after current account verification", async () => {
+  let posted = 0;
+  const p = new GoogleProvider("gmail", async (url, init) => {
+    if (String(url).includes("/settings/sendAs")) return Response.json({sendAs:[
+      {sendAsEmail:"team@example.test",verificationStatus:"accepted"},
+      {sendAsEmail:"pending@example.test",verificationStatus:"pending"}]});
+    posted++;
+    const raw = Buffer.from(JSON.parse(init.body).raw, "base64url").toString();
+    assert.match(raw, /^From: team@example.test\r?$/m);
+    return Response.json({id:"fixture-id"});
+  });
+  const ctx = context({accessToken:"fixture"});
+  const message = {recipients:["bob@example.test"],subject:"Visit",text:"Confirmed"};
+  assert.deepEqual((await p.execute("mail.senderAliases", {}, ctx)).data.aliases, ["team@example.test"]);
+  await assert.rejects(p.execute("mail.send",{...message,senderAlias:"pending@example.test"},ctx),/sender_alias_unverified/);
+  assert.equal(posted,0);
+  await p.execute("mail.send",{...message,senderAlias:"team@example.test"},ctx);
+  assert.equal(posted,1);
+});
